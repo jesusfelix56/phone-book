@@ -1,0 +1,32 @@
+<div class="layout" id="appLayoutView">
+  <header class="top">
+    <div class="brand">Phone Book</div>
+    <nav class="nav">
+      <a
+        class="link"
+        routerLink="/contacts"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ><i class="pi pi-users"></i> Contacts</a
+      >
+      @if (isAuthenticated) {
+        <a class="link" routerLink="/admin" routerLinkActive="active"
+          ><i class="pi pi-cog"></i> Admin</a
+        >
+      }
+      @if (!isAuthenticated) {
+        <a class="link" routerLink="/login" routerLinkActive="active"
+          ><i class="pi pi-sign-in"></i> Login</a
+        >
+      } @else {
+        <button class="logout" type="button" (click)="logout()">
+          <i class="pi pi-sign-out"></i> Logout
+        </button>
+      }
+    </nav>
+  </header>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

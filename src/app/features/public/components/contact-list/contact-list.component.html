@@ -1,0 +1,103 @@
+<section class="view" id="contactListView">
+  <header class="top">
+    <div class="titleBlock">
+      <h1 class="title">Phone Directory</h1>
+      <p class="subtitle">Search and review available contacts</p>
+    </div>
+  </header>
+
+  <div class="filters">
+    <p-iconField class="search">
+      <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+      <input pInputText type="text" class="input" placeholder="Search by name, last name or phone"
+        [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
+    </p-iconField>
+
+    <p-dropdown class="sort" [options]="sortOptions" optionLabel="label" optionValue="value" [(ngModel)]="selectedSort"
+      (onChange)="onSortChange()" placeholder="Sort by"></p-dropdown>
+  </div>
+
+  <p-dataView [value]="filteredContacts" layout="grid" [paginator]="true" [rows]="6">
+    <ng-template pTemplate="grid" let-items>
+      <div class="grid">
+        @for (contact of items; track contact.id) {
+        <div class="item" (click)="openProfile(contact)">
+          <p-card>
+            <ng-template pTemplate="header">
+              <div class="head">
+                <p-avatar [label]="getInitials(contact)" [style]="getAvatarStyle(contact)" size="large" shape="circle">
+                </p-avatar>
+                <div class="nameBlock">
+                  <h3 class="name">{{ contact.firstName }} {{ contact.lastName }}</h3>
+                  <span class="job">{{ contact.jobTitle }}</span>
+                </div>
+              </div>
+            </ng-template>
+
+            <div class="info">
+              <div class="line">
+                <span class="label"><i class="pi pi-phone"></i> Phone</span>
+                <span class="value">{{ contact.phone }}</span>
+              </div>
+              <div class="line">
+                <span class="label"><i class="pi pi-envelope"></i> Email</span>
+                <span class="value">{{ contact.email }}</span>
+              </div>
+            </div>
+
+            <ng-template pTemplate="footer">
+              <button pButton type="button" label="View full profile" icon="pi pi-eye"
+                (click)="openProfile(contact); $event.stopPropagation()"></button>
+            </ng-template>
+          </p-card>
+        </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="empty">
+      <div class="empty">No contacts match the current search.</div>
+    </ng-template>
+  </p-dataView>
+
+  <p-dialog [(visible)]="profileVisible" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true"
+    [breakpoints]="{ '768px': '95vw' }" [style]="{ width: '34rem' }" styleClass="contact-profile-dialog"
+    (onHide)="closeProfile()">
+    <ng-template pTemplate="header">
+      @if (selectedContact) {
+      <div class="dialogHead">
+        <p-avatar [label]="getInitials(selectedContact)" [style]="getAvatarStyle(selectedContact)" size="large"
+          shape="circle"></p-avatar>
+        <div class="nameBlock">
+          <h3 class="name">
+            {{ selectedContact.firstName }} {{ selectedContact.lastName }}
+          </h3>
+          <span class="job">{{ selectedContact.jobTitle }}</span>
+        </div>
+      </div>
+      }
+    </ng-template>
+
+    @if (selectedContact) {
+    <div class="dialogInfo">
+      <div class="line">
+        <span class="label"><i class="pi pi-phone"></i> Phone</span>
+        <span class="value">{{ selectedContact.phone }}</span>
+      </div>
+      <div class="line">
+        <span class="label"><i class="pi pi-envelope"></i> Email</span>
+        <span class="value">{{ selectedContact.email }}</span>
+      </div>
+      <div class="line">
+        <span class="label"><i class="pi pi-map-marker"></i> Address</span>
+        <span class="value">{{ selectedContact.address }}</span>
+      </div>
+    </div>
+
+    <div class="dialogActions">
+      <button pButton type="button" label="Back" icon="pi pi-arrow-left" severity="secondary"
+        (click)="closeProfile()"></button>
+    </div>
+    }
+  </p-dialog>
+</section>

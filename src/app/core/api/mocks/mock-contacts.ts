@@ -1,0 +1,58 @@
+import { Contact } from '../../../shared/interfaces/contact.interface';
+
+export const CONTACTS: Contact[] = [
+  {
+    id: 1,
+    firstName: 'Amanda',
+    lastName: 'Williams',
+    phone: '+1 202-555-0101',
+    email: 'amanda.williams@phonebook.dev',
+    jobTitle: 'Product Manager',
+    address: '1200 K Street NW, Washington, DC',
+  },
+  {
+    id: 2,
+    firstName: 'Carlos',
+    lastName: 'Mendez',
+    phone: '+34 600 100 200',
+    email: 'carlos.mendez@phonebook.dev',
+    jobTitle: 'Sales Lead',
+    address: 'Calle Gran Via 18, Madrid',
+  },
+  {
+    id: 3,
+    firstName: 'Lucia',
+    lastName: 'Romero',
+    phone: '+34 611 222 333',
+    email: 'lucia.romero@phonebook.dev',
+    jobTitle: 'UX Designer',
+    address: 'Avenida Diagonal 455, Barcelona',
+  },
+  {
+    id: 4,
+    firstName: 'Mateo',
+    lastName: 'Santos',
+    phone: '+55 11 98888 1111',
+    email: 'mateo.santos@phonebook.dev',
+    jobTitle: 'Frontend Engineer',
+    address: 'Rua Haddock Lobo 595, Sao Paulo',
+  },
+  {
+    id: 5,
+    firstName: 'Nora',
+    lastName: 'Iglesias',
+    phone: '+52 55 1234 5678',
+    email: 'nora.iglesias@phonebook.dev',
+    jobTitle: 'HR Specialist',
+    address: 'Av. Insurgentes Sur 1602, Ciudad de Mexico',
+  },
+  {
+    id: 6,
+    firstName: 'Rafael',
+    lastName: 'Duarte',
+    phone: '+351 912 345 678',
+    email: 'rafael.duarte@phonebook.dev',
+    jobTitle: 'Operations Analyst',
+    address: 'Rua de Santa Catarina 312, Porto',
+  },
+];

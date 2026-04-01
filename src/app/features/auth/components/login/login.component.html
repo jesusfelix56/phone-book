@@ -1,0 +1,46 @@
+<section class="view" id="loginView">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="head">
+        <h2 class="title">Admin Login</h2>
+        <p class="subtitle">Sign in to manage contacts</p>
+      </div>
+    </ng-template>
+
+    <div class="form">
+      <div class="field">
+        <label class="label" for="usernameInput">Username</label>
+        <input
+          id="usernameInput"
+          pInputText
+          type="text"
+          class="input"
+          [(ngModel)]="username"
+        />
+      </div>
+
+      <div class="field">
+        <label class="label" for="passwordInput">Password</label>
+        <input
+          id="passwordInput"
+          pInputText
+          type="password"
+          class="input"
+          [(ngModel)]="password"
+        />
+      </div>
+
+      @if (errorMessage) {
+        <p class="error">{{ errorMessage }}</p>
+      }
+
+      <button
+        pButton
+        type="button"
+        label="Sign in"
+        icon="pi pi-sign-in"
+        (click)="login()"
+      ></button>
+    </div>
+  </p-card>
+</section>

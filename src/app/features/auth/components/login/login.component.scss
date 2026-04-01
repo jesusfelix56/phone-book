@@ -1,0 +1,47 @@
+$text: var(--color-text);
+$muted: var(--color-muted);
+$danger: var(--color-danger);
+$space-md: 1rem;
+$space-lg: 1.5rem;
+
+.view {
+  max-width: 28rem;
+  margin: 2rem auto;
+}
+
+.head {
+  padding: $space-lg $space-lg 0;
+
+  .title {
+    margin: 0;
+    color: $text;
+  }
+
+  .subtitle {
+    margin: 0.3rem 0 0;
+    color: $muted;
+  }
+}
+
+.form {
+  display: grid;
+  gap: $space-md;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.label {
+  color: $muted;
+}
+
+.input {
+  width: 100%;
+}
+
+.error {
+  margin: 0;
+  color: $danger;
+}
