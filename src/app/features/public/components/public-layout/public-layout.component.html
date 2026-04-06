@@ -1,0 +1,31 @@
+<div class="layout" id="appLayoutView">
+  <header class="top">
+    <div class="topInner">
+      <div class="brand">Phone Book</div>
+      <nav class="nav">
+        <a class="link" routerLink="/contacts" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <i class="pi pi-users"></i> Contacts
+        </a>
+        <a *ngIf="isAuthenticated" class="link" routerLink="/admin" routerLinkActive="active">
+          <i class="pi pi-cog"></i> Admin
+        </a>
+        <ng-container *ngIf="!isAuthenticated; else logoutButton">
+          <a class="link" routerLink="/login" routerLinkActive="active">
+            <i class="pi pi-sign-in"></i> Login
+          </a>
+        </ng-container>
+        <ng-template #logoutButton>
+          <button class="logout" type="button" (click)="logout()">
+            <i class="pi pi-sign-out"></i> Logout
+          </button>
+        </ng-template>
+      </nav>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="contentInner">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

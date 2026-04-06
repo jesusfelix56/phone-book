@@ -18,6 +18,7 @@ import { ContactCardComponent } from './components/contact-list/components/conta
 import { ContactListComponent } from './components/contact-list/contact-list.component';
 import { ContactListFiltersComponent } from './components/contact-list/components/contact-list-filters/contact-list-filters.component';
 import { ContactProfileDialogComponent } from './components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component';
+import { PublicLayoutComponent } from './components/public-layout/public-layout.component';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,7 @@ import { ContactProfileDialogComponent } from './components/contact-list/compone
     ContactListFiltersComponent,
     ContactCardComponent,
     ContactProfileDialogComponent,
+    PublicLayoutComponent,
   ],
   imports: [
     CommonModule,
