@@ -273,10 +273,12 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 ### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.ts`
 - **Inputs:** `visible`, `contact`.
 - **Outputs:** `visibleChange`, `close`.
-- **Variable:** `defaultAvatar`.
+- **Variables:** `defaultAvatar`, `_namePalette`, `_tagSeverities`.
 - **Metodos:**
   - `onClose()` -> emite cierre.
   - `copyValue(value, label)` -> copy + toast.
+  - `getNameColor()` -> color dinamico por `id` del contacto.
+  - `getTagSeverity()` -> severidad dinamica del `p-tag` por `id`.
 
 ### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.html`
 - modal (`p-dialog`) con datos completos y botones de copiar.
@@ -289,17 +291,36 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 ## 8) Feature Admin (CRUD completo)
 
 ### `src/app/features/admin/admin-routing.module.ts`
-- `'contacts'` -> `AdminContactsComponent`.
-- `''` -> redireccion a `contacts`.
+- **Estructura actual con layout anidado:**
+  - `path: ''` -> `AdminLayoutComponent`.
+  - **children**:
+    - `'contacts'` -> `AdminContactsComponent`,
+    - `''` -> redireccion a `contacts`.
 
 ### `src/app/features/admin/admin.module.ts`
 - **Declara:**
+  - `AdminLayoutComponent`,
   - `AdminContactsComponent`,
   - `AdminContactsToolbarComponent`,
   - `AdminContactsTableComponent`,
   - `ContactFormDialogComponent`,
   - `ConfirmDeleteDialogComponent`.
 - **Importa:** `FormsModule` + PrimeNG de tabla/dialog/inputs/multiselect/tooltip.
+
+### `src/app/features/admin/components/admin-layout/admin-layout.component.ts`
+- **Rol:** shell privado de admin (header/nav/logout + contenedor de vistas hijas admin).
+- **Dependencias DI:** `AuthService`, `Router`.
+- **Metodo:** `logout()` -> cierra sesion y navega a `/contacts`.
+
+### `src/app/features/admin/components/admin-layout/admin-layout.component.html`
+- **Contiene:**
+  - marca `Phone Book`,
+  - links `Contacts` y `Admin`,
+  - boton `Logout`,
+  - `<router-outlet>` hijo para renderizar `AdminContactsComponent`.
+
+### `src/app/features/admin/components/admin-layout/admin-layout.component.scss`
+- **Rol:** estilos del header/nav privado de admin.
 
 ### `src/app/features/admin/components/admin-contacts/admin-contacts.component.ts`
 - **Rol:** orquestador central del CRUD.
@@ -419,7 +440,7 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 5. `AppComponent` solo hospeda `p-toast` + `router-outlet`.
 6. En zona publica, `PublicLayoutComponent` monta header/nav/logout y dentro renderiza `ContactListComponent`.
 7. Public muestra listado/filtros/perfil (solo lectura + copy).
-8. Admin permite CRUD completo con validacion y dialogs.
+8. En zona admin, `AdminLayoutComponent` monta header/nav/logout y dentro renderiza `AdminContactsComponent` (CRUD).
 9. Toasts comunican feedback global.
 10. Estilos globales + assets cierran la experiencia visual.
 
@@ -748,8 +769,14 @@ En cada archivo se explica: flujo real, exportaciones, variables, metodos, entra
 ### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.ts` (detalle)
 - **Inputs:** `visible`, `contact`.
 - **Outputs:** `visibleChange`, `close`.
+- **Variables internas:**
+  - `defaultAvatar`,
+  - `_namePalette`,
+  - `_tagSeverities`.
 - **Metodo `onClose()`:** sincroniza cierre y notifica al padre.
 - **Metodo `copyValue(...)`:** delega copia y feedback.
+- **Metodo `getNameColor()`:** devuelve color consistente por contacto.
+- **Metodo `getTagSeverity()`:** devuelve severidad consistente para el `jobTitle`.
 
 ### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.html` (detalle)
 - dialogo modal con datos extendidos (phone/email/address) y acciones copy/back.
@@ -758,13 +785,32 @@ En cada archivo se explica: flujo real, exportaciones, variables, metodos, entra
 - estilos de cabecera, lineas de dato y pie de acciones.
 
 ### `src/app/features/admin/admin-routing.module.ts` (detalle)
-- rutas internas:
-  - `'contacts'` -> `AdminContactsComponent`,
-  - `''` -> redirect a `contacts`.
+- rutas internas con shell privado:
+  - route padre `''` usa `AdminLayoutComponent`,
+  - children:
+    - `'contacts'` -> `AdminContactsComponent`,
+    - `''` -> redirect a `contacts`.
 
 ### `src/app/features/admin/admin.module.ts` (detalle)
-- declara todos los componentes admin y dialogos.
+- declara `AdminLayoutComponent`, los componentes admin y dialogos.
 - importa formularios + modulos PrimeNG de tabla/dialog/control.
+
+### `src/app/features/admin/components/admin-layout/admin-layout.component.ts` (detalle)
+- **Metodo `logout()`:**
+  - llama `AuthService.logout()`,
+  - redirige a `/contacts`.
+- **Rol arquitectonico:** shell privado del modulo admin (equivalente al shell publico, pero para rutas protegidas).
+
+### `src/app/features/admin/components/admin-layout/admin-layout.component.html` (detalle)
+- **Partes:**
+  - header con marca,
+  - menu con `Contacts`, `Admin` y boton `Logout`,
+  - `<router-outlet>` interno para vistas hijas admin.
+
+### `src/app/features/admin/components/admin-layout/admin-layout.component.scss` (detalle)
+- **Define:**
+  - estilos de `.top`, `.topInner`, `.nav`,
+  - comportamiento responsive del header de admin.
 
 ### `src/app/features/admin/components/admin-contacts/admin-contacts.component.ts` (detalle)
 - **Estado de pagina:**

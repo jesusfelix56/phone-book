@@ -15,8 +15,8 @@
       <div class="dialogHead">
         <p-avatar [image]="defaultAvatar" size="large" shape="circle"></p-avatar>
         <div class="nameBlock">
-          <h3 class="name">{{ contact.firstName }} {{ contact.lastName }}</h3>
-          <p-tag [value]="contact.jobTitle" severity="info"></p-tag>
+          <h3 class="name" [style.color]="getNameColor()">{{ contact.firstName }} {{ contact.lastName }}</h3>
+          <p-tag [value]="contact.jobTitle" [severity]="getTagSeverity()"></p-tag>
         </div>
       </div>
     </ng-container>
