@@ -1,12 +1,13 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { forkJoin, Subscription } from 'rxjs';
+import { AppToastService } from '../../../../services/app-toast.service';
 import { ContactService } from '../../../../services/contact.service';
-import { Contact } from '../../../../shared/interfaces/contact.interface';
-
-interface ColumnOption {
-  field: string;
-  header: string;
-}
+import {
+  Contact,
+  ContactColumnOption,
+} from '../../../../shared/interfaces/contact.interface';
+import { isContactBodyValid } from '../../../../shared/utils/contact-validation';
+import { AdminContactsTableComponent } from './components/admin-contacts-table/admin-contacts-table.component';
 
 @Component({
   selector: 'app-admin-contacts',
@@ -19,87 +20,100 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
   selectedContacts: Contact[] = [];
   contactDialogVisible = false;
   deleteDialogVisible = false;
-  deleteSelectedDialogVisible = false;
+  deleteDialogMode: 'single' | 'bulk' = 'single';
 
-  columns: ColumnOption[] = [
+  columns: ContactColumnOption[] = [
     { field: 'phone', header: 'Phone' },
     { field: 'email', header: 'Email' },
     { field: 'jobTitle', header: 'Job Title' },
     { field: 'address', header: 'Address' },
   ];
-  selectedColumns: ColumnOption[] = [...this.columns];
+  selectedColumns: ContactColumnOption[] = [...this.columns];
 
-  formModel: Omit<Contact, 'id'> = this._createEmptyForm();
+  formModel: Omit<Contact, 'id'> = this._emptyForm();
   formSubmitted = false;
+  deleteDialogTitle = '';
+  deleteDialogMessage = '';
+  deleteDialogConfirmLabel = '';
 
-  private _destroy$ = new Subject<void>();
+  private _contactsSub?: Subscription;
   private _clonedContacts: Record<number, Contact> = {};
-  private readonly _emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  private readonly _phonePattern = /^[\d\s()+-]{7,20}$/;
+  @ViewChild(AdminContactsTableComponent)
+  private _contactsTableComponent?: AdminContactsTableComponent;
 
-  constructor(private _contactService: ContactService) {}
+  constructor(
+    private _toast: AppToastService,
+    private _contactService: ContactService,
+  ) {}
 
   ngOnInit(): void {
-    this._contactService
-      .getContacts()
-      .pipe(takeUntil(this._destroy$))
-      .subscribe((contacts) => {
-        this.contacts = [...contacts].sort((left, right) =>
-          left.firstName.localeCompare(right.firstName),
-        );
-      });
+    this._contactsSub = this._contactService.getContacts().subscribe((contacts) => {
+      this.contacts = [...contacts].sort((left, right) =>
+        left.firstName.localeCompare(right.firstName),
+      );
+    });
   }
 
   openCreate(): void {
-    this.formModel = this._createEmptyForm();
+    this.formModel = this._emptyForm();
     this.formSubmitted = false;
     this.contactDialogVisible = true;
   }
 
   save(): void {
     this.formSubmitted = true;
-    if (!this._isFormValid()) {
+    if (!isContactBodyValid(this.formModel)) {
       return;
     }
 
     this._contactService.addContact(this.formModel).subscribe(() => {
       this.contactDialogVisible = false;
       this.formSubmitted = false;
+      this._showSuccess('Contact created', 'The new contact was saved successfully.');
     });
   }
 
   openDelete(contact: Contact): void {
+    this.deleteDialogMode = 'single';
     this.selectedContact = contact;
+    this.deleteDialogTitle = 'Delete contact';
+    this.deleteDialogMessage = `Are you sure you want to delete ${contact.firstName} ${contact.lastName}?`;
+    this.deleteDialogConfirmLabel = 'Delete';
     this.deleteDialogVisible = true;
   }
 
-  confirmDelete(): void {
-    if (!this.selectedContact) {
+  openDeleteSelected(): void {
+    this.deleteDialogMode = 'bulk';
+    this.deleteDialogTitle = 'Delete selected contacts';
+    this.deleteDialogMessage = `Are you sure you want to delete ${this.selectedContacts.length} selected contacts?`;
+    this.deleteDialogConfirmLabel = 'Delete selected';
+    this.deleteDialogVisible = true;
+  }
+
+  confirmDeleteDialog(): void {
+    if (this.deleteDialogMode === 'single') {
+      if (!this.selectedContact) {
+        return;
+      }
+
+      this._contactService.deleteContact(this.selectedContact.id).subscribe(() => {
+        this.deleteDialogVisible = false;
+        this.selectedContact = null;
+        this._showSuccess('Contact deleted', 'Contact removed successfully.');
+      });
       return;
     }
 
-    this._contactService.deleteContact(this.selectedContact.id).subscribe(() => {
-      this.deleteDialogVisible = false;
-      this.selectedContact = null;
-    });
-  }
-
-  openDeleteSelected(): void {
-    this.deleteSelectedDialogVisible = true;
-  }
-
-  confirmDeleteSelected(): void {
     const selectedIds = this.selectedContacts.map((contact) => contact.id);
     if (!selectedIds.length) {
       return;
     }
 
-    forkJoin(selectedIds.map((id) => this._contactService.deleteContact(id))).subscribe(
-      () => {
-        this.deleteSelectedDialogVisible = false;
-        this.selectedContacts = [];
-      },
-    );
+    forkJoin(selectedIds.map((id) => this._contactService.deleteContact(id))).subscribe(() => {
+      this.deleteDialogVisible = false;
+      this.selectedContacts = [];
+      this._showSuccess('Contacts deleted', 'Selected contacts were removed.');
+    });
   }
 
   onRowEditInit(contact: Contact): void {
@@ -107,12 +121,13 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
   }
 
   onRowEditSave(contact: Contact): void {
-    if (!this._isContactValid(contact)) {
+    if (!isContactBodyValid(contact)) {
       this.onRowEditCancel(contact);
       return;
     }
 
     this._contactService.updateContact(contact).subscribe();
+    this._showSuccess('Contact updated', 'Changes saved successfully.');
     delete this._clonedContacts[contact.id];
   }
 
@@ -128,77 +143,23 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this._destroy$.next();
-    this._destroy$.complete();
+    this._contactsSub?.unsubscribe();
   }
 
-  private _isFormValid(): boolean {
-    return this._isContactValid(this.formModel);
+  updateFormModel(model: Omit<Contact, 'id'>): void {
+    this.formModel = model;
   }
 
-  private _isRequiredFilled(value: string): boolean {
-    return !!value.trim();
+  closeFormDialog(): void {
+    this.contactDialogVisible = false;
+    this.formSubmitted = false;
   }
 
-  isFieldInvalid(field: keyof Omit<Contact, 'id'>): boolean {
-    return !!this.getFieldError(field);
+  onGlobalFilterChange(value: string): void {
+    this._contactsTableComponent?.applyGlobalFilter(value);
   }
 
-  getFieldError(field: keyof Omit<Contact, 'id'>): string {
-    if (!this.formSubmitted) {
-      return '';
-    }
-
-    if (field === 'address') {
-      return '';
-    }
-
-    if (!this._isRequiredFilled(this.formModel[field])) {
-      return `${this._getFieldLabel(field)} is required.`;
-    }
-
-    if (field === 'email' && !this._isEmailValid(this.formModel.email)) {
-      return 'Email format is invalid.';
-    }
-
-    if (field === 'phone' && !this._isPhoneValid(this.formModel.phone)) {
-      return 'Phone format is invalid.';
-    }
-
-    return '';
-  }
-
-  private _isEmailValid(value: string): boolean {
-    return this._emailPattern.test(value.trim());
-  }
-
-  private _isPhoneValid(value: string): boolean {
-    return this._phonePattern.test(value.trim());
-  }
-
-  private _isContactValid(contact: Omit<Contact, 'id'> | Contact): boolean {
-    return (
-      !!contact.firstName.trim() &&
-      !!contact.lastName.trim() &&
-      this._isPhoneValid(contact.phone) &&
-      this._isEmailValid(contact.email) &&
-      !!contact.jobTitle.trim()
-    );
-  }
-
-  private _getFieldLabel(field: keyof Omit<Contact, 'id'>): string {
-    const labels: Record<keyof Omit<Contact, 'id'>, string> = {
-      firstName: 'First name',
-      lastName: 'Last name',
-      phone: 'Phone',
-      email: 'Email',
-      jobTitle: 'Job title',
-      address: 'Address',
-    };
-    return labels[field];
-  }
-
-  private _createEmptyForm(): Omit<Contact, 'id'> {
+  private _emptyForm(): Omit<Contact, 'id'> {
     return {
       firstName: '',
       lastName: '',
@@ -207,5 +168,9 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
       jobTitle: '',
       address: '',
     };
+  }
+
+  private _showSuccess(summary: string, detail: string): void {
+    this._toast.success(summary, detail);
   }
 }

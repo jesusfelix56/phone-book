@@ -1,0 +1,74 @@
+@use 'assets/styles/variables' as *;
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-md;
+}
+
+.title {
+  margin: 0;
+}
+
+.subtitle {
+  margin: 0.3rem 0 0;
+}
+
+.selectionBar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-md;
+  padding: $space-md;
+  border-radius: $radius-lg;
+  background: $selection-bg;
+}
+
+.selectionText {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: $selection-text;
+}
+
+.tableTools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-md;
+  align-items: center;
+  min-width: 0;
+}
+
+.search {
+  min-width: 0;
+
+  .input {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.columns {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 769px) {
+  .top {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .selectionBar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tableTools {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+  }
+}

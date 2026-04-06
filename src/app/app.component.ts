@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { AuthService } from './services/auth.service';
 
 @Component({
@@ -10,7 +10,7 @@ import { AuthService } from './services/auth.service';
 })
 export class AppComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
-  private _destroy$ = new Subject<void>();
+  private _authSub?: Subscription;
 
   constructor(
     private _authService: AuthService,
@@ -18,11 +18,9 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this._authService.isAuthenticated$
-      .pipe(takeUntil(this._destroy$))
-      .subscribe((isAuthenticated) => {
-        this.isAuthenticated = isAuthenticated;
-      });
+    this._authSub = this._authService.isAuthenticated$.subscribe((isAuthenticated) => {
+      this.isAuthenticated = isAuthenticated;
+    });
   }
 
   logout(): void {
@@ -31,7 +29,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this._destroy$.next();
-    this._destroy$.complete();
+    this._authSub?.unsubscribe();
   }
 }

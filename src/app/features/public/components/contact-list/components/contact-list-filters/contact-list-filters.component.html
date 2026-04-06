@@ -1,0 +1,23 @@
+<div class="filters">
+  <p-iconField class="search">
+    <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+    <input
+      pInputText
+      type="text"
+      class="input"
+      placeholder="Search by name, last name or phone"
+      [ngModel]="searchTerm"
+      (ngModelChange)="searchTermChange.emit($event)"
+    />
+  </p-iconField>
+
+  <p-dropdown
+    class="sort"
+    [options]="sortOptions"
+    optionLabel="label"
+    optionValue="value"
+    [ngModel]="selectedSort"
+    (ngModelChange)="selectedSortChange.emit($event)"
+    placeholder="Sort by"
+  ></p-dropdown>
+</div>

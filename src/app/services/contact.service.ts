@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
+import { BehaviorSubject, MonoTypeOperatorFunction, Observable, catchError, of, tap } from 'rxjs';
 import { Contact } from '../shared/interfaces/contact.interface';
 
 @Injectable({
@@ -27,14 +27,14 @@ export class ContactService {
     return this._http
       .post<Contact>(this._contactsUrl, contact, this._httpOptions)
       .pipe(
-        tap(() => this._loadContacts()),
+        this._refreshContacts<Contact>(),
         catchError(this._handleError<Contact>('addContact')),
       );
   }
 
   updateContact(contact: Contact): Observable<Contact> {
     return this._http.put<Contact>(this._contactsUrl, contact, this._httpOptions).pipe(
-      tap(() => this._loadContacts()),
+      this._refreshContacts<Contact>(),
       catchError(this._handleError<Contact>('updateContact')),
     );
   }
@@ -42,7 +42,7 @@ export class ContactService {
   deleteContact(id: number): Observable<void> {
     const url = `${this._contactsUrl}/${id}`;
     return this._http.delete<void>(url, this._httpOptions).pipe(
-      tap(() => this._loadContacts()),
+      this._refreshContacts<void>(),
       catchError(this._handleError<void>('deleteContact')),
     );
   }
@@ -54,6 +54,10 @@ export class ContactService {
       .subscribe((contacts) => {
         this._contacts$.next(contacts);
       });
+  }
+
+  private _refreshContacts<T>(): MonoTypeOperatorFunction<T> {
+    return tap(() => this._loadContacts());
   }
 
   private _handleError<T>(operation = 'operation', result?: T) {

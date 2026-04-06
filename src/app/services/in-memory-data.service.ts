@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { InMemoryDbService } from 'angular-in-memory-web-api';
-import { CONTACTS } from './mocks/mock-contacts';
-import { Contact } from '../../shared/interfaces/contact.interface';
+import { CONTACTS } from '../core/api/mocks/mock-contacts';
+import { Contact } from '../shared/interfaces/contact.interface';
 
 @Injectable({
   providedIn: 'root',

@@ -1,15 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { ContactService } from '../../../../services/contact.service';
 import {
   Contact,
   ContactSortField,
+  ContactSortOption,
 } from '../../../../shared/interfaces/contact.interface';
-
-interface SortOption {
-  label: string;
-  value: ContactSortField;
-}
 
 @Component({
   selector: 'app-contact-list',
@@ -21,34 +17,41 @@ export class ContactListComponent implements OnInit, OnDestroy {
   filteredContacts: Contact[] = [];
   selectedContact: Contact | null = null;
   profileVisible = false;
+  loading = true;
   searchTerm = '';
   selectedSort: ContactSortField = 'firstName';
-  sortOptions: SortOption[] = [
+  readonly sortOptions: ContactSortOption[] = [
     { label: 'Name', value: 'firstName' },
     { label: 'Last Name', value: 'lastName' },
     { label: 'Phone', value: 'phone' },
     { label: 'Job Title', value: 'jobTitle' },
   ];
 
-  private _destroy$ = new Subject<void>();
+  private _contactsSub?: Subscription;
 
   constructor(private _contactService: ContactService) {}
 
   ngOnInit(): void {
-    this._contactService
-      .getContacts()
-      .pipe(takeUntil(this._destroy$))
-      .subscribe((contacts) => {
-        this.contacts = [...contacts];
-        this._applyFilters();
-      });
+    this._contactsSub = this._contactService.getContacts().subscribe((contacts) => {
+      this.contacts = [...contacts];
+      this._applyFilters();
+      this.loading = false;
+    });
   }
 
-  onSearchChange(): void {
+  onSearchChange(value: string): void {
+    this.searchTerm = value;
     this._applyFilters();
   }
 
-  onSortChange(): void {
+  onSortChange(value: ContactSortField): void {
+    this.selectedSort = value;
+    this._applyFilters();
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.selectedSort = 'firstName';
     this._applyFilters();
   }
 
@@ -59,25 +62,11 @@ export class ContactListComponent implements OnInit, OnDestroy {
 
   closeProfile(): void {
     this.profileVisible = false;
-  }
-
-  getInitials(contact: Contact): string {
-    return `${contact.firstName.charAt(0)}${contact.lastName.charAt(0)}`;
-  }
-
-  getAvatarStyle(contact: Contact): Record<string, string> {
-    const palette = ['#eff6ff', '#ecfeff', '#f5f3ff', '#fff7ed', '#f0fdf4'];
-    const textPalette = ['#1d4ed8', '#0f766e', '#6d28d9', '#c2410c', '#166534'];
-    const index = contact.id % palette.length;
-    return {
-      background: palette[index],
-      color: textPalette[index],
-    };
+    this.selectedContact = null;
   }
 
   ngOnDestroy(): void {
-    this._destroy$.next();
-    this._destroy$.complete();
+    this._contactsSub?.unsubscribe();
   }
 
   private _applyFilters(): void {

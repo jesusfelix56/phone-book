@@ -10,11 +10,22 @@ import { DropdownModule } from 'primeng/dropdown';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { PublicRoutingModule } from './public-routing.module';
+import { ContactCardComponent } from './components/contact-list/components/contact-card/contact-card.component';
 import { ContactListComponent } from './components/contact-list/contact-list.component';
+import { ContactListFiltersComponent } from './components/contact-list/components/contact-list-filters/contact-list-filters.component';
+import { ContactProfileDialogComponent } from './components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component';
 
 @NgModule({
-  declarations: [ContactListComponent],
+  declarations: [
+    ContactListComponent,
+    ContactListFiltersComponent,
+    ContactCardComponent,
+    ContactProfileDialogComponent,
+  ],
   imports: [
     CommonModule,
     FormsModule,
@@ -28,6 +39,9 @@ import { ContactListComponent } from './components/contact-list/contact-list.com
     DropdownModule,
     ButtonModule,
     CardModule,
+    TagModule,
+    SkeletonModule,
+    TooltipModule,
   ],
 })
 export class PublicModule {}

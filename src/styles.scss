@@ -1,26 +1,38 @@
-:root {
-  --color-surface: #ffffff;
-  --color-page: #f8fafc;
-  --color-border: #e5e7eb;
-  --color-border-soft: #e2e8f0;
-  --color-text: #1f2937;
-  --color-text-strong: #0f172a;
-  --color-muted: #6b7280;
-  --color-muted-strong: #475569;
-  --color-accent: #2563eb;
-  --color-danger: #dc2626;
-  --color-selection-bg: #dbeafe;
-  --color-selection-text: #1e3a8a;
+@use 'assets/styles/variables' as *;
+
+app-admin-contacts-table {
+  display: block;
+  min-width: 0;
+}
+
+app-admin-contacts-table .p-datatable-table {
+  min-width: 64rem;
+}
+
+app-admin-contacts-toolbar .tableTools .p-multiselect {
+  width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  overflow-x: clip;
 }
 
 .contact-profile-dialog {
   .p-dialog-header {
-    padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid var(--color-border);
+    padding: $space-lg $space-lg $space-md;
+    border-bottom: 1px solid $border;
   }
 
   .p-dialog-content {
-    padding: 1.5rem;
+    padding: $space-lg;
   }
 
   .p-dialog-footer {
@@ -30,8 +42,8 @@
 
 .admin-contact-dialog {
   .p-dialog-content {
-    padding: 1.5rem;
-    background: var(--color-surface);
-    border-top: 1px solid var(--color-border);
+    padding: $space-lg;
+    background: $surface;
+    border-top: 1px solid $border;
   }
 }

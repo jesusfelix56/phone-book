@@ -9,3 +9,14 @@ export interface Contact {
 }
 
 export type ContactSortField = 'firstName' | 'lastName' | 'phone' | 'jobTitle';
+
+export interface ContactSortOption {
+  label: string;
+  value: ContactSortField;
+}
+
+export interface ContactColumnOption {
+  field: keyof Omit<Contact, 'id'>;
+  header: string;
+}
+

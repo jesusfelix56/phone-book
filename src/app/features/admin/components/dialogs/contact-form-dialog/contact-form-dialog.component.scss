@@ -1,0 +1,50 @@
+@use 'assets/styles/variables' as *;
+
+.dialogTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: $text;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-md;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.label {
+  color: $muted;
+}
+
+.input {
+  width: 100%;
+}
+
+.inputError {
+  border-color: $danger;
+}
+
+.error {
+  color: $danger;
+  font-size: 0.78rem;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: $space-lg;
+}
+
+@media (min-width: 769px) {
+  .form {
+    grid-template-columns: 1fr 1fr;
+  }
+}

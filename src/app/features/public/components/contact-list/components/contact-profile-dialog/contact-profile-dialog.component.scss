@@ -1,0 +1,58 @@
+@use 'assets/styles/variables' as *;
+
+.dialogHead {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  padding-right: 2rem;
+}
+
+.nameBlock {
+  .name {
+    margin: 0;
+    color: $text;
+    font-size: 1rem;
+  }
+}
+
+.dialogInfo {
+  display: grid;
+  gap: $space-md;
+
+  .line {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid $border;
+    border-radius: 0.6rem;
+    background: $page;
+  }
+
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: $muted;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02rem;
+  }
+
+  .value {
+    color: $text;
+    font-weight: 500;
+  }
+}
+
+.valueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $space-lg;
+}

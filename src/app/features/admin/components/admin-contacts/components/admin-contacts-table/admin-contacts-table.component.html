@@ -1,0 +1,113 @@
+<div class="tableWrapper">
+  <p-table
+    #dt
+    [value]="contacts"
+    editMode="row"
+    dataKey="id"
+    [rowHover]="true"
+    [paginator]="true"
+    paginatorDropdownAppendTo="body"
+    [rows]="8"
+    [rowsPerPageOptions]="[8, 16, 24]"
+    [globalFilterFields]="['firstName', 'lastName', 'phone', 'email', 'jobTitle']"
+    [selection]="selectedContacts"
+    (selectionChange)="selectedContactsChange.emit($event)"
+    (onFilter)="clearSelectionOnFilter()"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="selectColumn">
+          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+        </th>
+        <th pSortableColumn="firstName">
+          Full name <p-sortIcon field="firstName"></p-sortIcon>
+        </th>
+        <th *ngFor="let column of selectedColumns" [pSortableColumn]="column.field">
+          {{ column.header }} <p-sortIcon [field]="column.field"></p-sortIcon>
+        </th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-contact let-editing="editing">
+      <tr [pEditableRow]="contact">
+        <td>
+          <p-tableCheckbox [value]="contact"></p-tableCheckbox>
+        </td>
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <input pInputText type="text" [(ngModel)]="contact.firstName" />
+              <input pInputText type="text" [(ngModel)]="contact.lastName" />
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{ contact.firstName }} {{ contact.lastName }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td *ngFor="let column of selectedColumns">
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <input pInputText type="text" [(ngModel)]="contact[column.field]" />
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{ contact[column.field] }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td class="actions">
+          <ng-container *ngIf="!editing; else rowEditingActions">
+            <button
+              pButton
+              pInitEditableRow
+              type="button"
+              icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              pTooltip="Edit row"
+              tooltipPosition="top"
+              (click)="rowEditInit.emit(contact)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-trash"
+              [text]="true"
+              [rounded]="true"
+              severity="danger"
+              pTooltip="Delete contact"
+              tooltipPosition="top"
+              (click)="deleteContact.emit(contact)"
+            ></button>
+          </ng-container>
+          <ng-template #rowEditingActions>
+            <button
+              pButton
+              pSaveEditableRow
+              type="button"
+              icon="pi pi-check"
+              [text]="true"
+              [rounded]="true"
+              severity="success"
+              pTooltip="Save changes"
+              tooltipPosition="top"
+              (click)="rowEditSave.emit(contact)"
+            ></button>
+            <button
+              pButton
+              pCancelEditableRow
+              type="button"
+              icon="pi pi-times"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              pTooltip="Cancel editing"
+              tooltipPosition="top"
+              (click)="rowEditCancel.emit(contact)"
+            ></button>
+          </ng-template>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

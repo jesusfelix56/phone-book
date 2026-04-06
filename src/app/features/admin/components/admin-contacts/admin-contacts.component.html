@@ -1,340 +1,39 @@
 <section class="view" id="adminContactsView">
-  <header class="top">
-    <div class="titleBlock">
-      <h1 class="title">Admin Contacts</h1>
-      <p class="subtitle">Create, edit and remove contacts</p>
-    </div>
+  <app-admin-contacts-toolbar
+    [selectedCount]="selectedContacts.length"
+    [columns]="columns"
+    [selectedColumns]="selectedColumns"
+    (addContact)="openCreate()"
+    (deleteSelected)="openDeleteSelected()"
+    (selectedColumnsChange)="selectedColumns = $event"
+    (globalFilterChange)="onGlobalFilterChange($event)"
+  ></app-admin-contacts-toolbar>
 
-    <button
-      pButton
-      type="button"
-      label="Add contact"
-      icon="pi pi-plus"
-      (click)="openCreate()"
-    ></button>
-  </header>
+  <app-admin-contacts-table
+    [contacts]="contacts"
+    [selectedColumns]="selectedColumns"
+    [selectedContacts]="selectedContacts"
+    (selectedContactsChange)="selectedContacts = $event"
+    (rowEditInit)="onRowEditInit($event)"
+    (rowEditSave)="onRowEditSave($event)"
+    (rowEditCancel)="onRowEditCancel($event)"
+    (deleteContact)="openDelete($event)"
+  ></app-admin-contacts-table>
 
-  @if (selectedContacts.length > 0) {
-    <div class="selectionBar">
-      <span class="selectionText">
-        <i class="pi pi-check-square"></i> {{ selectedContacts.length }} selected
-      </span>
-      <button
-        pButton
-        type="button"
-        label="Delete selected"
-        icon="pi pi-trash"
-        severity="danger"
-        (click)="openDeleteSelected()"
-      ></button>
-    </div>
-  }
-
-  <div class="tableTools">
-    <p-iconField class="search">
-      <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
-      <input
-        pInputText
-        type="text"
-        class="input"
-        placeholder="Search name, phone, email or job title"
-        (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-      />
-    </p-iconField>
-
-    <p-multiSelect
-      class="columns"
-      [options]="columns"
-      [(ngModel)]="selectedColumns"
-      optionLabel="header"
-      [filter]="false"
-      display="chip"
-      placeholder="Columns"
-      selectedItemsLabel="{0} columns selected"
-    ></p-multiSelect>
-  </div>
-
-  <p-table
-    #dt
-    [value]="contacts"
-    editMode="row"
-    dataKey="id"
-    [rowHover]="true"
-    [paginator]="true"
-    [rows]="8"
-    [rowsPerPageOptions]="[8, 16, 24]"
-    [globalFilterFields]="['firstName', 'lastName', 'phone', 'email', 'jobTitle']"
-    [selection]="selectedContacts"
-    (selectionChange)="selectedContacts = $event"
-    (onFilter)="selectedContacts = []"
-  >
-    <ng-template pTemplate="header">
-      <tr>
-        <th class="selectColumn">
-          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-        </th>
-        <th pSortableColumn="firstName">
-          Full name <p-sortIcon field="firstName"></p-sortIcon>
-        </th>
-        @for (column of selectedColumns; track column.field) {
-          <th [pSortableColumn]="column.field">
-            {{ column.header }} <p-sortIcon [field]="column.field"></p-sortIcon>
-          </th>
-        }
-        <th>Actions</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-contact let-editing="editing">
-      <tr [pEditableRow]="contact">
-        <td>
-          <p-tableCheckbox [value]="contact"></p-tableCheckbox>
-        </td>
-        <td>
-          <p-cellEditor>
-            <ng-template pTemplate="input">
-              <input pInputText type="text" [(ngModel)]="contact.firstName" />
-              <input pInputText type="text" [(ngModel)]="contact.lastName" />
-            </ng-template>
-            <ng-template pTemplate="output">
-              {{ contact.firstName }} {{ contact.lastName }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
-        @for (column of selectedColumns; track column.field) {
-          <td>
-            <p-cellEditor>
-              <ng-template pTemplate="input">
-                <input pInputText type="text" [(ngModel)]="contact[column.field]" />
-              </ng-template>
-              <ng-template pTemplate="output">
-                {{ contact[column.field] }}
-              </ng-template>
-            </p-cellEditor>
-          </td>
-        }
-        <td class="actions">
-          @if (!editing) {
-            <button
-              pButton
-              pInitEditableRow
-              type="button"
-              icon="pi pi-pencil"
-              severity="secondary"
-              (click)="onRowEditInit(contact)"
-            ></button>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-trash"
-              severity="danger"
-              (click)="openDelete(contact)"
-            ></button>
-          } @else {
-            <button
-              pButton
-              pSaveEditableRow
-              type="button"
-              icon="pi pi-check"
-              severity="success"
-              (click)="onRowEditSave(contact)"
-            ></button>
-            <button
-              pButton
-              pCancelEditableRow
-              type="button"
-              icon="pi pi-times"
-              severity="secondary"
-              (click)="onRowEditCancel(contact)"
-            ></button>
-          }
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-
-  <p-dialog
+  <app-contact-form-dialog
     [(visible)]="contactDialogVisible"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [breakpoints]="{ '768px': '95vw' }"
-    [style]="{ width: '38rem' }"
-    styleClass="admin-contact-dialog"
-  >
-    <ng-template pTemplate="header">
-      <h3 class="dialogTitle">New contact</h3>
-    </ng-template>
+    [formModel]="formModel"
+    [formSubmitted]="formSubmitted"
+    (formModelChange)="updateFormModel($event)"
+    (save)="save()"
+    (cancel)="closeFormDialog()"
+  ></app-contact-form-dialog>
 
-    <div class="form">
-      <div class="field">
-        <label class="label" for="firstNameInput">First name *</label>
-        <input
-          id="firstNameInput"
-          pInputText
-          type="text"
-          class="input"
-          [class.inputError]="isFieldInvalid('firstName')"
-          [(ngModel)]="formModel.firstName"
-        />
-        @if (getFieldError('firstName'); as error) {
-          <small class="error">{{ error }}</small>
-        }
-      </div>
-
-      <div class="field">
-        <label class="label" for="lastNameInput">Last name *</label>
-        <input
-          id="lastNameInput"
-          pInputText
-          type="text"
-          class="input"
-          [class.inputError]="isFieldInvalid('lastName')"
-          [(ngModel)]="formModel.lastName"
-        />
-        @if (getFieldError('lastName'); as error) {
-          <small class="error">{{ error }}</small>
-        }
-      </div>
-
-      <div class="field">
-        <label class="label" for="phoneInput">Phone *</label>
-        <input
-          id="phoneInput"
-          pInputText
-          type="text"
-          class="input"
-          [class.inputError]="isFieldInvalid('phone')"
-          [(ngModel)]="formModel.phone"
-        />
-        @if (getFieldError('phone'); as error) {
-          <small class="error">{{ error }}</small>
-        }
-      </div>
-
-      <div class="field">
-        <label class="label" for="emailInput">Email *</label>
-        <input
-          id="emailInput"
-          pInputText
-          type="email"
-          class="input"
-          [class.inputError]="isFieldInvalid('email')"
-          [(ngModel)]="formModel.email"
-        />
-        @if (getFieldError('email'); as error) {
-          <small class="error">{{ error }}</small>
-        }
-      </div>
-
-      <div class="field">
-        <label class="label" for="jobTitleInput">Job title *</label>
-        <input
-          id="jobTitleInput"
-          pInputText
-          type="text"
-          class="input"
-          [class.inputError]="isFieldInvalid('jobTitle')"
-          [(ngModel)]="formModel.jobTitle"
-        />
-        @if (getFieldError('jobTitle'); as error) {
-          <small class="error">{{ error }}</small>
-        }
-      </div>
-
-      <div class="field">
-        <label class="label" for="addressInput">Address</label>
-        <input
-          id="addressInput"
-          pInputText
-          type="text"
-          class="input"
-          [(ngModel)]="formModel.address"
-        />
-      </div>
-    </div>
-
-    <div class="dialogActions">
-      <button
-        pButton
-        type="button"
-        label="Cancel"
-        severity="secondary"
-        (click)="contactDialogVisible = false; formSubmitted = false"
-      ></button>
-      <button pButton type="button" label="Save" (click)="save()"></button>
-    </div>
-  </p-dialog>
-
-  <p-dialog
+  <app-confirm-delete-dialog
     [(visible)]="deleteDialogVisible"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [style]="{ width: '26rem' }"
-    [breakpoints]="{ '768px': '95vw' }"
-  >
-    <ng-template pTemplate="header">
-      <h3 class="dialogTitle"><i class="pi pi-exclamation-triangle"></i> Delete contact</h3>
-    </ng-template>
-
-    <p class="confirmText">
-      Are you sure you want to delete
-      <strong>{{ selectedContact?.firstName }} {{ selectedContact?.lastName }}</strong
-      >?
-    </p>
-
-    <div class="dialogActions">
-      <button
-        pButton
-        type="button"
-        label="Cancel"
-        severity="secondary"
-        (click)="deleteDialogVisible = false"
-      ></button>
-      <button
-        pButton
-        type="button"
-        label="Delete"
-        severity="danger"
-        (click)="confirmDelete()"
-      ></button>
-    </div>
-  </p-dialog>
-
-  <p-dialog
-    [(visible)]="deleteSelectedDialogVisible"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [style]="{ width: '26rem' }"
-    [breakpoints]="{ '768px': '95vw' }"
-  >
-    <ng-template pTemplate="header">
-      <h3 class="dialogTitle">
-        <i class="pi pi-exclamation-triangle"></i> Delete selected contacts
-      </h3>
-    </ng-template>
-
-    <p class="confirmText">
-      Are you sure you want to delete {{ selectedContacts.length }} selected
-      contacts?
-    </p>
-
-    <div class="dialogActions">
-      <button
-        pButton
-        type="button"
-        label="Cancel"
-        severity="secondary"
-        (click)="deleteSelectedDialogVisible = false"
-      ></button>
-      <button
-        pButton
-        type="button"
-        label="Delete selected"
-        severity="danger"
-        (click)="confirmDeleteSelected()"
-      ></button>
-    </div>
-  </p-dialog>
+    [title]="deleteDialogTitle"
+    [message]="deleteDialogMessage"
+    [confirmLabel]="deleteDialogConfirmLabel"
+    (confirm)="confirmDeleteDialog()"
+  ></app-confirm-delete-dialog>
 </section>

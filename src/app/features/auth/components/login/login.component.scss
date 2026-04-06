@@ -1,8 +1,4 @@
-$text: var(--color-text);
-$muted: var(--color-muted);
-$danger: var(--color-danger);
-$space-md: 1rem;
-$space-lg: 1.5rem;
+@use 'assets/styles/variables' as *;
 
 .view {
   max-width: 28rem;
