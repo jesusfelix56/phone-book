@@ -11,6 +11,7 @@ import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { AdminRoutingModule } from './admin-routing.module';
 import { AdminContactsComponent } from './components/admin-contacts/admin-contacts.component';
+import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { AdminContactsTableComponent } from './components/admin-contacts/components/admin-contacts-table/admin-contacts-table.component';
 import { AdminContactsToolbarComponent } from './components/admin-contacts/components/admin-contacts-toolbar/admin-contacts-toolbar.component';
 import { ConfirmDeleteDialogComponent } from './components/dialogs/confirm-delete-dialog/confirm-delete-dialog.component';
@@ -18,6 +19,7 @@ import { ContactFormDialogComponent } from './components/dialogs/contact-form-di
 
 @NgModule({
   declarations: [
+    AdminLayoutComponent,
     AdminContactsComponent,
     AdminContactsToolbarComponent,
     AdminContactsTableComponent,

@@ -1,16 +1,23 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdminContactsComponent } from './components/admin-contacts/admin-contacts.component';
+import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 
 const routes: Routes = [
   {
-    path: 'contacts',
-    component: AdminContactsComponent,
-  },
-  {
     path: '',
-    redirectTo: 'contacts',
-    pathMatch: 'full',
+    component: AdminLayoutComponent,
+    children: [
+      {
+        path: 'contacts',
+        component: AdminContactsComponent,
+      },
+      {
+        path: '',
+        redirectTo: 'contacts',
+        pathMatch: 'full',
+      },
+    ],
   },
 ];
 

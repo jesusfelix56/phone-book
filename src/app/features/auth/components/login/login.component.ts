@@ -22,7 +22,7 @@ export class LoginComponent {
   login(): void {
     this._authService.login(this.username, this.password).subscribe((isValid) => {
       if (!isValid) {
-        this.errorMessage = 'Invalid credentials. Use admin / admin123.';
+        this.errorMessage = 'Invalid credentials';
         return;
       }
 

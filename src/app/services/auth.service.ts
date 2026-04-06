@@ -7,7 +7,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 export class AuthService {
   private _isAuthenticated$ = new BehaviorSubject<boolean>(false);
   private readonly _adminUsername = 'admin';
-  private readonly _adminPassword = 'admin123';
+  private readonly _adminPassword = '123';
   isAuthenticated$ = this._isAuthenticated$.asObservable();
 
   login(username: string, password: string): Observable<boolean> {
