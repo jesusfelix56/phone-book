@@ -53,7 +53,7 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 - **Rol actual:** estilo minimo del host (`:host { display: block; }`).
 
 ### `src/app/app.component.spec.ts`
-- **Rol:** test basico del root component (creacion y render de marca).
+- **Rol:** test basico del root component (creacion y presencia de `router-outlet`).
 
 ---
 
@@ -216,7 +216,7 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 ### `src/app/features/public/components/public-layout/public-layout.component.scss`
 - **Rol:** estilos del layout publico (header/top nav/content responsive).
 - **Dependencia SCSS:** `@use 'assets/styles/variables' as *`.
-- **Bloques clave:** `.layout`, `.top`, `.topInner`, `.nav`, `.content`, `.contentInner`.
+- **Bloques clave:** `.top`, `.topInner`, `.nav`, `.content`, `.contentInner`.
 
 ### `src/app/features/public/components/contact-list/contact-list.component.ts`
 - **Rol:** contenedor de la vista publica.
@@ -673,7 +673,7 @@ En cada archivo se explica: flujo real, exportaciones, variables, metodos, entra
 
 ### `src/app/features/public/components/public-layout/public-layout.component.scss` (detalle)
 - **Define:**
-  - estructura de alto nivel (`.layout`, `.top`, `.content`),
+  - estructura de alto nivel (`.top`, `.content`),
   - comportamiento responsive,
   - estilos de links activos y boton logout.
 

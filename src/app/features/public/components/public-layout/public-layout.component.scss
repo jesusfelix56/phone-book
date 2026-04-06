@@ -1,18 +1,5 @@
 @use 'assets/styles/variables' as *;
 
-:host {
-  display: block;
-  max-width: 100%;
-  overflow-x: clip;
-}
-
-.layout {
-  min-height: 100vh;
-  background: $page;
-  max-width: 100%;
-  overflow-x: clip;
-}
-
 .top {
   border-bottom: 1px solid $border-soft;
   background: $surface;
