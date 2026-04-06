@@ -5,6 +5,7 @@ import {
   MonoTypeOperatorFunction,
   Observable,
   catchError,
+  map,
   of,
   tap,
   throwError,
@@ -28,7 +29,9 @@ export class ContactService {
   }
 
   getContacts(): Observable<Contact[]> {
-    return this._contacts$.asObservable();
+    return this._contacts$
+      .asObservable()
+      .pipe(map((contacts) => contacts.map((contact) => ({ ...contact }))));
   }
 
   addContact(contact: Omit<Contact, 'id'>): Observable<Contact> {
@@ -61,7 +64,8 @@ export class ContactService {
       .get<Contact[]>(this._contactsUrl)
       .pipe(catchError(this._handleError<Contact[]>('_loadContacts', [])))
       .subscribe((contacts) => {
-        this._contacts$.next(contacts);
+        // Store an internal copy to avoid external mutations leaking across views.
+        this._contacts$.next(contacts.map((contact) => ({ ...contact })));
       });
   }
 
