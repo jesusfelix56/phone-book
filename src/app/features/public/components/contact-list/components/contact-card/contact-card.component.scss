@@ -1,9 +1,20 @@
 @use 'assets/styles/variables' as *;
 
+:host {
+  display: block;
+  height: 100%;
+}
+
 .item {
   min-width: 0;
+  height: 100%;
   border-top: 3px solid transparent;
   border-radius: $radius-lg;
+}
+
+.item p-card {
+  display: block;
+  height: 100%;
 }
 
 .head {
@@ -66,4 +77,20 @@
 .cardFooterBtn {
   width: 100%;
   border-radius: 0;
+}
+
+:host ::ng-deep .p-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+:host ::ng-deep .p-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+:host ::ng-deep .p-card-content {
+  flex: 1;
 }
