@@ -123,12 +123,26 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
   onRowEditSave(contact: Contact): void {
     if (!isContactBodyValid(contact)) {
       this.onRowEditCancel(contact);
+      this._toast.error(
+        'Invalid contact',
+        'Please complete required fields with valid phone and email.',
+      );
       return;
     }
 
-    this._contactService.updateContact(contact).subscribe();
-    this._showSuccess('Contact updated', 'Changes saved successfully.');
-    delete this._clonedContacts[contact.id];
+    this._contactService.updateContact(contact).subscribe({
+      next: () => {
+        this._showSuccess('Contact updated', 'Changes saved successfully.');
+        delete this._clonedContacts[contact.id];
+      },
+      error: () => {
+        this.onRowEditCancel(contact);
+        this._toast.error(
+          'Update failed',
+          'The contact could not be updated. Please try again.',
+        );
+      },
+    });
   }
 
   onRowEditCancel(contact: Contact): void {

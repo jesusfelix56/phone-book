@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, MonoTypeOperatorFunction, Observable, catchError, of, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  MonoTypeOperatorFunction,
+  Observable,
+  catchError,
+  of,
+  tap,
+  throwError,
+} from 'rxjs';
 import { Contact } from '../shared/interfaces/contact.interface';
 
 @Injectable({
@@ -33,9 +41,10 @@ export class ContactService {
   }
 
   updateContact(contact: Contact): Observable<Contact> {
-    return this._http.put<Contact>(this._contactsUrl, contact, this._httpOptions).pipe(
+    const url = `${this._contactsUrl}/${contact.id}`;
+    return this._http.put<Contact>(url, contact, this._httpOptions).pipe(
       this._refreshContacts<Contact>(),
-      catchError(this._handleError<Contact>('updateContact')),
+      catchError(this._handleError<Contact>('updateContact', undefined, true)),
     );
   }
 
@@ -60,9 +69,16 @@ export class ContactService {
     return tap(() => this._loadContacts());
   }
 
-  private _handleError<T>(operation = 'operation', result?: T) {
-    return (_error: unknown): Observable<T> => {
+  private _handleError<T>(
+    operation = 'operation',
+    result?: T,
+    rethrow = false,
+  ) {
+    return (error: unknown): Observable<T> => {
       console.error(`${operation} failed`);
+      if (rethrow) {
+        return throwError(() => error);
+      }
       return of(result as T);
     };
   }
