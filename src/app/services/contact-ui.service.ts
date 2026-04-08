@@ -3,11 +3,11 @@ import { Contact } from '../shared/interfaces/contact.interface';
 
 export type ContactTagSeverity = 'info' | 'success' | 'warning' | 'danger' | 'secondary';
 
-export interface ContactDisplayMeta {
+type ContactDisplayMeta = {
   avatar: string;
   nameColor: string;
   tagSeverity: ContactTagSeverity;
-}
+};
 
 @Injectable({
   providedIn: 'root',

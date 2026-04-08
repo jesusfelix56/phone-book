@@ -52,9 +52,9 @@
           *ngFor="let contact of items"
           [contact]="contact"
           [isAdmin]="isAdmin"
-          (viewProfile)="openProfile($event)"
-          (editContact)="openEdit($event)"
-          (deleteContact)="openDelete($event)"
+          (profileClick)="openProfile($event)"
+          (onEdit)="openEdit($event)"
+          (delete)="openDelete($event)"
         ></app-contact-card>
       </div>
     </ng-template>
@@ -79,10 +79,10 @@
 
   <!-- dialogo de creacion/edicion de contacto -->
   <app-contact-form-dialog
-    [(visible)]="contactDialogVisible"
-    [editingContactId]="editingContactId"
+    [(visible)]="dialogOpen"
+    [editingContactId]="editingId"
     [initialModel]="formModel"
-    [isSaving]="isSavingContact"
+    [isSaving]="saving"
     (cancel)="closeFormDialog()"
     (save)="saveContact($event)"
   ></app-contact-form-dialog>
@@ -90,9 +90,9 @@
   <!-- dialogo de eliminacion de contacto -->
   <app-confirm-delete-dialog
     [(visible)]="deleteDialogVisible"
-    [contact]="contactToDelete"
-    [isDeleting]="isDeletingContact"
+    [contact]="toDelete"
+    [isDeleting]="deleting"
     (cancel)="closeDeleteDialog()"
-    (confirm)="confirmDelete()"
+    (onConfirm)="confirmDelete()"
   ></app-confirm-delete-dialog>
 </section>

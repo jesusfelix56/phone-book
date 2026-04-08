@@ -7,31 +7,33 @@ import { Contact } from '../../../../../../shared/interfaces/contact.interface';
   styleUrls: ['./confirm-delete-dialog.component.scss'],
 })
 export class ConfirmDeleteDialogComponent {
+  readonly dialogStyle = { width: 'min(95vw, 28rem)' };
 
   //visibilidad del dialogo y el contacto a eliminar
   @Input() visible = false;
   @Input() contact: Contact | null = null;
-  @Input() isDeleting = false;
+  @Input('isDeleting') deleting = false;
 
   //emitir el cambio de visibilidad y cancelar la eliminacion
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() cancel = new EventEmitter<void>();
-  @Output() confirm = new EventEmitter<void>();
+  @Output() onConfirm = new EventEmitter<void>();
+
+  //cerrar el dialogo
+  //eliminar el contacto
+  submitDelete(): void {
+    if (this.deleting) {
+      return;
+    }
+    this.onConfirm.emit();
+  }
 
   //cerrar el dialogo
   close(): void {
-    if (this.isDeleting) {
+    if (this.deleting) {
       return;
     }
     this.visibleChange.emit(false);
     this.cancel.emit();
-  }
-
-  //eliminar el contacto
-  submitDelete(): void {
-    if (this.isDeleting) {
-      return;
-    }
-    this.confirm.emit();
   }
 }

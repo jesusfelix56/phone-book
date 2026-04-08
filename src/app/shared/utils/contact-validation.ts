@@ -1,23 +1,50 @@
-import { Contact } from '../interfaces/contact.interface';
+import { Contact, ContactFormModel } from '../interfaces/contact.interface';
 
-export const CONTACT_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const CONTACT_PHONE_PATTERN = /^[\d\s()+-]{7,20}$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phonePattern = /^[\d\s()+-]{7,20}$/;
+type RequiredContactField =
+  | 'firstName'
+  | 'lastName'
+  | 'phone'
+  | 'email'
+  | 'jobTitle';
 
-const fieldLabels: Record<keyof Omit<Contact, 'id'>, string> = {
+const fieldLabels: Record<RequiredContactField, string> = {
   firstName: 'First name',
   lastName: 'Last name',
   phone: 'Phone',
   email: 'Email',
   jobTitle: 'Job title',
-  address: 'Address',
 };
 
 export function isContactEmailValid(value: string): boolean {
-  return CONTACT_EMAIL_PATTERN.test(value.trim());
+  return emailPattern.test(value.trim());
+}
+
+export function createEmptyContactForm(): ContactFormModel {
+  return {
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+    jobTitle: '',
+    address: '',
+  };
+}
+
+export function toContactFormModel(contact: Contact): ContactFormModel {
+  return {
+    firstName: contact.firstName,
+    lastName: contact.lastName,
+    phone: contact.phone,
+    email: contact.email,
+    jobTitle: contact.jobTitle,
+    address: contact.address,
+  };
 }
 
 export function isContactPhoneValid(value: string): boolean {
-  return CONTACT_PHONE_PATTERN.test(value.trim());
+  return phonePattern.test(value.trim());
 }
 
 export function isContactBodyValid(contact: Omit<Contact, 'id'> | Contact): boolean {
@@ -30,7 +57,7 @@ export function isContactBodyValid(contact: Omit<Contact, 'id'> | Contact): bool
   );
 }
 
-export function getContactFormFieldLabel(field: keyof Omit<Contact, 'id'>): string {
+export function getContactFormFieldLabel(field: RequiredContactField): string {
   return fieldLabels[field];
 }
 

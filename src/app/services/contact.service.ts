@@ -4,6 +4,7 @@ import {
   BehaviorSubject,
   Observable,
   catchError,
+  filter,
   map,
   of,
   throwError,
@@ -15,7 +16,7 @@ import { Contact } from '../shared/interfaces/contact.interface';
 })
 export class ContactService {
   private readonly _contactsUrl = 'api/contacts';
-  private readonly _contacts$ = new BehaviorSubject<Contact[]>([]);
+  private readonly _contacts$ = new BehaviorSubject<Contact[] | null>(null);
   private readonly _httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
@@ -29,6 +30,7 @@ export class ContactService {
   getContacts(): Observable<Contact[]> {
     return this._contacts$
       .asObservable()
+      .pipe(filter((contacts): contacts is Contact[] => contacts !== null))
       .pipe(map((contacts) => contacts.map((contact) => ({ ...contact }))));
   }
 
@@ -37,11 +39,11 @@ export class ContactService {
       .post<Contact>(this._contactsUrl, contact, this._httpOptions)
       .pipe(
         map((createdContact) => {
-          const nextContacts = [...this._contacts$.value, { ...createdContact }];
+          const nextContacts = [...(this._contacts$.value ?? []), { ...createdContact }];
           this._contacts$.next(nextContacts);
           return createdContact;
         }),
-        catchError(this._handleError<Contact>('addContact')),
+        catchError(this._handleError<Contact>('addContact', undefined, true)),
       );
   }
 
@@ -51,7 +53,7 @@ export class ContactService {
       map((updatedContact) => {
         //si updatedContact es null, usamos el contacto original
         const resolvedContact = updatedContact ?? contact;
-        const nextContacts = this._contacts$.value.map((existing) =>
+        const nextContacts = (this._contacts$.value ?? []).map((existing) =>
           existing.id === resolvedContact.id ? { ...resolvedContact } : existing,
         );
         this._contacts$.next(nextContacts);
@@ -65,10 +67,10 @@ export class ContactService {
     const url = `${this._contactsUrl}/${id}`;
     return this._http.delete<void>(url, this._httpOptions).pipe(
       map(() => {
-        const nextContacts = this._contacts$.value.filter((contact) => contact.id !== id);
+        const nextContacts = (this._contacts$.value ?? []).filter((contact) => contact.id !== id);
         this._contacts$.next(nextContacts);
       }),
-      catchError(this._handleError<void>('deleteContact')),
+      catchError(this._handleError<void>('deleteContact', undefined, true)),
     );
   }
 

@@ -4,8 +4,8 @@
   [modal]="true"
   [closable]="false"
   [draggable]="false"
-  [style]="{ width: 'min(95vw, 40rem)' }"
-  [header]="editingContactId === null ? 'Create contact' : 'Edit contact'"
+  [style]="dialogStyle"
+  [header]="editingId === null ? 'Create contact' : 'Edit contact'"
 >
   <!-- formulario de contacto -->
   <div class="contactForm">
@@ -107,7 +107,7 @@
       </label>
     </div>
     <!-- mensaje de error de validacion -->
-    <small *ngIf="showValidation && !isSaving && !canSaveContact" class="formError">
+    <small *ngIf="showValidation && !saving && !canSaveContact" class="formError">
       Complete required fields and use valid phone/email format.
     </small>
     <!-- botones de acciones del formulario -->
@@ -118,7 +118,7 @@
         type="button"
         label="Cancel"
         severity="secondary"
-        [disabled]="isSaving"
+        [disabled]="saving"
         (click)="close()"
       ></button>
       <!-- boton de guardado -->
@@ -127,7 +127,7 @@
         type="button"
         label="Save"
         [disabled]="!canSaveContact"
-        [loading]="isSaving"
+        [loading]="saving"
         (click)="submit()"
       ></button>
     </div>

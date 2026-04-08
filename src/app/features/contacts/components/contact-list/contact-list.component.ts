@@ -8,9 +8,8 @@ import {
   Contact,
   ContactFormModel,
   ContactSortField,
-  ContactSortOption,
 } from '../../../../shared/interfaces/contact.interface';
-import { createEmptyContactForm, toContactFormModel } from '../../../../shared/utils/contact-form.factory';
+import { createEmptyContactForm, toContactFormModel } from '../../../../shared/utils/contact-validation';
 
 @Component({
   selector: 'app-contact-list',
@@ -24,16 +23,6 @@ export class ContactListComponent implements OnInit, OnDestroy {
   //contactos filtrados
   filteredContacts: Contact[] = [];
   selectedContact: Contact | null = null;
-  //visibilidad del dialogo de perfil
-  profileVisible = false;
-  //visibilidad del dialogo de creacion/edicion de contacto
-  contactDialogVisible = false;
-  //visibilidad del dialogo de eliminacion de contacto
-  deleteDialogVisible = false;
-  //estado de guardado de contacto
-  isSavingContact = false;
-  //estado de eliminacion de contacto
-  isDeletingContact = false;
   //estado de administrador
   isAdmin = false;
   //estado de carga
@@ -43,14 +32,17 @@ export class ContactListComponent implements OnInit, OnDestroy {
   selectedSort: ContactSortField = 'firstName';
   //modelo de formulario
   formModel: ContactFormModel = createEmptyContactForm();
-  //id del contacto a editar
-  editingContactId: number | null = null;
-  //contacto a eliminar
-  contactToDelete: Contact | null = null;
+  profileVisible = false;
+  dialogOpen = false;
+  deleteDialogVisible = false;
+  saving = false;
+  deleting = false;
+  editingId: number | null = null;
+  toDelete: Contact | null = null;
   //numero de filas por pagina
   readonly rowsPerPage = 12;
   //opciones de ordenamiento
-  readonly sortOptions: ContactSortOption[] = [
+  readonly sortOptions: Array<{ label: string; value: ContactSortField }> = [
     { label: 'Name', value: 'firstName' },
     { label: 'Last Name', value: 'lastName' },
     { label: 'Phone', value: 'phone' },
@@ -108,48 +100,33 @@ export class ContactListComponent implements OnInit, OnDestroy {
     this._applyFilters();
   }
 
-  //abrir el dialogo de perfil
-  openProfile(contact: Contact): void {
-    this.selectedContact = contact;
-    this.profileVisible = true;
-  }
-
-  //cerrar el dialogo de perfil
-  closeProfile(): void {
-    this.profileVisible = false;
-    this.selectedContact = null;
-  }
-
   //abrir el dialogo de creacion
   openCreate(): void {
-    this.editingContactId = null;
+    this.editingId = null;
     this.formModel = createEmptyContactForm();
-    this.contactDialogVisible = true;
-  }
-
-  //abrir el dialogo de edicion
-  openEdit(contact: Contact): void {
-    this.editingContactId = contact.id;
-    this.formModel = toContactFormModel(contact);
-    this.contactDialogVisible = true;
+    this.dialogOpen = true;
   }
 
   //guardar el contacto
   saveContact(form: ContactFormModel): void {
-    if (this.isSavingContact) {
+    if (this.saving) {
       return;
     }
 
-    this.isSavingContact = true;
-    const isCreateMode = this.editingContactId === null;
+    this.saving = true;
+    const isCreateMode = this.editingId === null;
     const action$ = isCreateMode
       ? this._contactService.addContact(form)
       //si es modo edicion, actualizar el contacto
-      : this._contactService.updateContact({ id: this.editingContactId!, ...form });
+      : this._contactService.updateContact({ id: this.editingId!, ...form });
 
     //ejecutar la accion
     action$
-      .pipe(finalize(() => (this.isSavingContact = false)))
+      .pipe(
+        finalize(() => {
+          this.saving = false;
+        }),
+      )
       .subscribe({
         //si la accion es exitosa, cerrar el dialogo y mostrar un mensaje de exito
         next: () => {
@@ -157,51 +134,36 @@ export class ContactListComponent implements OnInit, OnDestroy {
           const title = isCreateMode ? 'Contact created' : 'Contact updated';
           this._toast.success(title, 'Contact saved successfully.');
         },
-        //si la accion es fallida, mostrar un mensaje de error
         error: () => {
-          this._toast.error('Update failed', 'The contact could not be updated. Please try again.');
+          const title = isCreateMode ? 'Create failed' : 'Update failed';
+          this._toast.error(title, 'The contact could not be saved. Please try again.');
         },
       });
   }
 
-  //cerrar el dialogo de creacion/edicion
-  closeFormDialog(): void {
-    this.contactDialogVisible = false;
-    this.editingContactId = null;
-  }
-
-  //abrir el dialogo de eliminacion
-  openDelete(contact: Contact): void {
-    this.contactToDelete = contact;
-    this.deleteDialogVisible = true;
-  }
-
-  //cerrar el dialogo de eliminacion
-  closeDeleteDialog(): void {
-    this.deleteDialogVisible = false;
-    this.contactToDelete = null;
-  }
-
   //confirmar la eliminacion
   confirmDelete(): void {
-    if (this.isDeletingContact || !this.contactToDelete) {
+    if (this.deleting || !this.toDelete) {
       return;
     }
 
-    this.isDeletingContact = true;
+    this.deleting = true;
     //ejecutar la eliminacion
     this._contactService
-      .deleteContact(this.contactToDelete.id)
-      .pipe(finalize(() => (this.isDeletingContact = false)))
+      .deleteContact(this.toDelete.id)
+      .pipe(
+        finalize(() => {
+          this.deleting = false;
+        }),
+      )
       .subscribe({
         //si la eliminacion es exitosa, cerrar el dialogo y mostrar un mensaje de exito
         next: () => {
           this.closeDeleteDialog();
           this._toast.success('Contact deleted', 'Contact removed successfully.');
         },
-        //si la eliminacion es fallida, mostrar un mensaje de error
         error: () => {
-          this._toast.error('Delete failed', 'The contact could not be deleted. Please try again.');
+          this._toast.error('Delete failed', 'Could not delete this contact.');
         },
       });
   }
@@ -211,6 +173,43 @@ export class ContactListComponent implements OnInit, OnDestroy {
     const count = this.filteredContacts.length;
 
     return count === 1 ? '1 result' : `${count} results`;
+  }
+
+  //abrir el dialogo de perfil
+  openProfile(contact: Contact): void {
+    this.selectedContact = contact;
+    this.profileVisible = true;
+  }
+
+  //abrir el dialogo de edicion
+  openEdit(contact: Contact): void {
+    this.editingId = contact.id;
+    this.formModel = toContactFormModel(contact);
+    this.dialogOpen = true;
+  }
+
+  //cerrar el dialogo de perfil
+  closeProfile(): void {
+    this.profileVisible = false;
+    this.selectedContact = null;
+  }
+
+  //cerrar el dialogo de creacion/edicion
+  closeFormDialog(): void {
+    this.dialogOpen = false;
+    this.editingId = null;
+  }
+
+  //abrir el dialogo de eliminacion
+  openDelete(contact: Contact): void {
+    this.toDelete = contact;
+    this.deleteDialogVisible = true;
+  }
+
+  //cerrar el dialogo de eliminacion
+  closeDeleteDialog(): void {
+    this.deleteDialogVisible = false;
+    this.toDelete = null;
   }
 
   //aplicar filtros

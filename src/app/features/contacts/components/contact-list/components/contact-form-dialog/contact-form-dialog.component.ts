@@ -1,7 +1,10 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { ContactFormModel } from '../../../../../../shared/interfaces/contact.interface';
-import { getContactFormFieldError, isContactBodyValid } from '../../../../../../shared/utils/contact-validation';
-import { createEmptyContactForm } from '../../../../../../shared/utils/contact-form.factory';
+import {
+  createEmptyContactForm,
+  getContactFormFieldError,
+  isContactBodyValid,
+} from '../../../../../../shared/utils/contact-validation';
 
 @Component({
   selector: 'app-contact-form-dialog',
@@ -10,11 +13,13 @@ import { createEmptyContactForm } from '../../../../../../shared/utils/contact-f
 })
 export class ContactFormDialogComponent implements OnChanges {
   
+  readonly dialogStyle = { width: 'min(95vw, 40rem)' };
+
   //visibilidad del dialogo y el contacto a editar
   @Input() visible = false;
-  @Input() editingContactId: number | null = null;
+  @Input('editingContactId') editingId: number | null = null;
   @Input() initialModel: ContactFormModel = createEmptyContactForm();
-  @Input() isSaving = false;
+  @Input('isSaving') saving = false;
 
   //emitir el cambio de visibilidad y cancelar el guardado
   @Output() visibleChange = new EventEmitter<boolean>();
@@ -54,6 +59,12 @@ export class ContactFormDialogComponent implements OnChanges {
     this.showValidation = true;
   }
 
+  //cerrar el dialogo
+  close(): void {
+    this.visibleChange.emit(false);
+    this.cancel.emit();
+  }
+
   //verificar si el campo es requerido
   isRequiredField(field: keyof ContactFormModel): boolean {
     return this.requiredFields.includes(field);
@@ -74,13 +85,7 @@ export class ContactFormDialogComponent implements OnChanges {
 
   //verificar si se puede guardar el contacto
   get canSaveContact(): boolean {
-    return !this.isSaving && isContactBodyValid(this.formModel);
-  }
-
-  //cerrar el dialogo
-  close(): void {
-    this.visibleChange.emit(false);
-    this.cancel.emit();
+    return !this.saving && isContactBodyValid(this.formModel);
   }
 
   //guardar el contacto

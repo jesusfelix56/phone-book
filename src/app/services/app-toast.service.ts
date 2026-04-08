@@ -19,6 +19,24 @@ export class AppToastService {
     this._show('info', summary, detail);
   }
 
+  copyWithFeedback(value: string, label: string): void {
+    const text = value.trim();
+    if (!text) {
+      return;
+    }
+
+    const showToast = (): void => {
+      this.success(`${label} copied`, 'Value copied to clipboard.');
+    };
+
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(showToast);
+      return;
+    }
+
+    showToast();
+  }
+
   private _show(
     severity: 'success' | 'error' | 'info',
     summary: string,

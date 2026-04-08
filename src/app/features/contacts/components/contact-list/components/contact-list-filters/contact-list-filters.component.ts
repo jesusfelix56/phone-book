@@ -1,8 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import {
-  ContactSortField,
-  ContactSortOption,
-} from '../../../../../../shared/interfaces/contact.interface';
+import { ContactSortField } from '../../../../../../shared/interfaces/contact.interface';
 
 @Component({
   selector: 'app-contact-list-filters',
@@ -13,7 +10,7 @@ export class ContactListFiltersComponent {
   
   @Input() searchTerm = '';
   @Input() selectedSort: ContactSortField = 'firstName';
-  @Input() sortOptions: ContactSortOption[] = [];
+  @Input() sortOptions: Array<{ label: string; value: ContactSortField }> = [];
   @Input() canCreateContact = false;
   @Input() showClearSearch = false;
 

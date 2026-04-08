@@ -1,18 +1,5 @@
 @use 'assets/styles/variables' as *;
 
-app-admin-contacts-table {
-  display: block;
-  min-width: 0;
-}
-
-app-admin-contacts-table .p-datatable-table {
-  min-width: 64rem;
-}
-
-app-admin-contacts-toolbar .tableTools .p-multiselect {
-  width: 100%;
-}
-
 *,
 *::before,
 *::after {
@@ -40,10 +27,3 @@ body {
   }
 }
 
-.admin-contact-dialog {
-  .p-dialog-content {
-    padding: $space-lg;
-    background: $surface;
-    border-top: 1px solid $border;
-  }
-}

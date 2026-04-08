@@ -4,7 +4,7 @@
   [modal]="true"
   [closable]="false"
   [draggable]="false"
-  [style]="{ width: 'min(95vw, 28rem)' }"
+  [style]="dialogStyle"
   header="Delete contact"
 >
   <!-- texto de confirmacion -->
@@ -19,7 +19,7 @@
       type="button"
       label="Cancel"
       severity="secondary"
-      [disabled]="isDeleting"
+      [disabled]="deleting"
       (click)="close()"
     ></button>
     <!-- boton de eliminacion -->
@@ -28,8 +28,8 @@
       type="button"
       label="Delete"
       severity="danger"
-      [disabled]="isDeleting"
-      [loading]="isDeleting"
+      [disabled]="deleting"
+      [loading]="deleting"
       (click)="submitDelete()"
     ></button>
   </div>
