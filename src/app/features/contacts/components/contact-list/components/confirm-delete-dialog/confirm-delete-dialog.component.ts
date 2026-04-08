@@ -7,7 +7,7 @@ import { Contact } from '../../../../../../shared/interfaces/contact.interface';
   styleUrls: ['./confirm-delete-dialog.component.scss'],
 })
 export class ConfirmDeleteDialogComponent {
-  readonly dialogStyle = { width: 'min(95vw, 28rem)' };
+  dialogStyle = { width: 'min(95vw, 28rem)' };
 
   //visibilidad del dialogo y el contacto a eliminar
   @Input() visible = false;

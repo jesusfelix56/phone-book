@@ -9,7 +9,7 @@ import { ContactUiService } from '../../../../../../services/contact-ui.service'
   styleUrls: ['./contact-profile-dialog.component.scss'],
 })
 export class ContactProfileDialogComponent {
-  readonly dialogStyle = { width: '34rem' };
+  dialogStyle = { width: '34rem' };
 
   //visibilidad del dialogo y el contacto
   @Input() visible = false;

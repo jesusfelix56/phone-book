@@ -40,9 +40,9 @@ export class ContactListComponent implements OnInit, OnDestroy {
   editingId: number | null = null;
   toDelete: Contact | null = null;
   //numero de filas por pagina
-  readonly rowsPerPage = 12;
+  rowsPerPage = 12;
   //opciones de ordenamiento
-  readonly sortOptions: Array<{ label: string; value: ContactSortField }> = [
+  sortOptions: Array<{ label: string; value: ContactSortField }> = [
     { label: 'Name', value: 'firstName' },
     { label: 'Last Name', value: 'lastName' },
     { label: 'Phone', value: 'phone' },

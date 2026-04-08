@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Contact, ContactSortField } from '../shared/interfaces/contact.interface';
 
+const COMBINING_DIACRITICS_REGEX = /[\u0300-\u036f]/g;
+const NON_ALPHANUMERIC_REGEX = /[^a-z0-9]+/g;
+const MULTIPLE_SPACES_REGEX = /\s+/g;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -35,9 +39,9 @@ export class ContactsViewModelService {
     return value
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, ' ')
+      .replace(COMBINING_DIACRITICS_REGEX, '')
+      .replace(NON_ALPHANUMERIC_REGEX, ' ')
       .trim()
-      .replace(/\s+/g, ' ');
+      .replace(MULTIPLE_SPACES_REGEX, ' ');
   }
 }

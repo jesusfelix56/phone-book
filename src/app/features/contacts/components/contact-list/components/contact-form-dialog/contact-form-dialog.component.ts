@@ -13,7 +13,7 @@ import {
 })
 export class ContactFormDialogComponent implements OnChanges {
   
-  readonly dialogStyle = { width: 'min(95vw, 40rem)' };
+  dialogStyle = { width: 'min(95vw, 40rem)' };
 
   //visibilidad del dialogo y el contacto a editar
   @Input() visible = false;
@@ -34,7 +34,7 @@ export class ContactFormDialogComponent implements OnChanges {
   //mostrar validacion
   showValidation = false;
   //campos requeridos
-  readonly requiredFields: Array<keyof ContactFormModel> = [
+  requiredFields: Array<keyof ContactFormModel> = [
     'firstName',
     'lastName',
     'phone',
