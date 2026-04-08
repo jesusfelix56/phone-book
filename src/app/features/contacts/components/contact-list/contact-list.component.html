@@ -1,0 +1,98 @@
+<!-- vista de lista de contactos -->
+<section class="view" id="contactListView">
+  <!-- encabezado de la vista -->
+  <header class="top">
+    <!-- contenedor del encabezado -->
+    <div class="titleBlock">
+      <h1 class="title">Phone Directory</h1>
+      <p class="subtitle">Search and review available contacts</p>
+    </div>
+  </header>
+
+  <!-- filtros de la vista -->
+  <app-contact-list-filters
+    [searchTerm]="searchTerm"
+    [selectedSort]="selectedSort"
+    [sortOptions]="sortOptions"
+    [canCreateContact]="isAdmin"
+    [showClearSearch]="searchTerm.length > 0"
+    (searchTermChange)="onSearchChange($event)"
+    (selectedSortChange)="onSortChange($event)"
+    (createContact)="openCreate()"
+    (clearSearch)="clearSearch()"
+  ></app-contact-list-filters>
+
+  <!-- contador de resultados -->
+  <p class="resultCount" *ngIf="!loading">{{ filteredCountLabel }}</p>
+
+  <!-- tarjetas de contactos -->
+  <div *ngIf="loading" class="grid">
+    <div class="skeletonCard" *ngFor="let _ of [1, 2, 3, 4, 5, 6]">
+      <p-skeleton styleClass="mb-3" height="3.5rem"></p-skeleton>
+      <p-skeleton styleClass="mb-2" height="1rem"></p-skeleton>
+      <p-skeleton styleClass="mb-2" height="1rem"></p-skeleton>
+      <p-skeleton width="60%" height="2rem"></p-skeleton>
+    </div>
+  </div>
+
+  <!-- vista de datos -->
+  <p-dataView
+    *ngIf="!loading"
+    [value]="filteredContacts"
+    layout="grid"
+    [paginator]="true"
+    [rows]="rowsPerPage"
+  >
+    <!-- plantilla de grid -->
+    <ng-template pTemplate="grid" let-items>
+      <!-- contenedor de tarjetas -->
+      <div class="grid">
+        <!-- tarjeta de contacto -->
+        <app-contact-card
+          *ngFor="let contact of items"
+          [contact]="contact"
+          [isAdmin]="isAdmin"
+          (viewProfile)="openProfile($event)"
+          (editContact)="openEdit($event)"
+          (deleteContact)="openDelete($event)"
+        ></app-contact-card>
+      </div>
+    </ng-template>
+
+    <!-- plantilla de vacio -->
+    <ng-template pTemplate="empty">
+      <div class="empty">
+        <i class="pi pi-search emptyIcon"></i>
+        <h3 class="emptyTitle">No contacts found</h3>
+        <p class="emptyText">Try another search term or clear filters.</p>
+        <button pButton type="button" label="Clear filters" (click)="clearFilters()"></button>
+      </div>
+    </ng-template>
+  </p-dataView>
+
+  <!-- dialogo de perfil de contacto -->
+  <app-contact-profile-dialog
+    [(visible)]="profileVisible"
+    [contact]="selectedContact"
+    (close)="closeProfile()"
+  ></app-contact-profile-dialog>
+
+  <!-- dialogo de creacion/edicion de contacto -->
+  <app-contact-form-dialog
+    [(visible)]="contactDialogVisible"
+    [editingContactId]="editingContactId"
+    [initialModel]="formModel"
+    [isSaving]="isSavingContact"
+    (cancel)="closeFormDialog()"
+    (save)="saveContact($event)"
+  ></app-contact-form-dialog>
+
+  <!-- dialogo de eliminacion de contacto -->
+  <app-confirm-delete-dialog
+    [(visible)]="deleteDialogVisible"
+    [contact]="contactToDelete"
+    [isDeleting]="isDeletingContact"
+    (cancel)="closeDeleteDialog()"
+    (confirm)="confirmDelete()"
+  ></app-confirm-delete-dialog>
+</section>

@@ -2,12 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   BehaviorSubject,
-  MonoTypeOperatorFunction,
   Observable,
   catchError,
   map,
   of,
-  tap,
   throwError,
 } from 'rxjs';
 import { Contact } from '../shared/interfaces/contact.interface';
@@ -38,15 +36,27 @@ export class ContactService {
     return this._http
       .post<Contact>(this._contactsUrl, contact, this._httpOptions)
       .pipe(
-        this._refreshContacts<Contact>(),
+        map((createdContact) => {
+          const nextContacts = [...this._contacts$.value, { ...createdContact }];
+          this._contacts$.next(nextContacts);
+          return createdContact;
+        }),
         catchError(this._handleError<Contact>('addContact')),
       );
   }
 
   updateContact(contact: Contact): Observable<Contact> {
     const url = `${this._contactsUrl}/${contact.id}`;
-    return this._http.put<Contact>(url, contact, this._httpOptions).pipe(
-      this._refreshContacts<Contact>(),
+    return this._http.put<Contact | null>(url, contact, this._httpOptions).pipe(
+      map((updatedContact) => {
+        //si updatedContact es null, usamos el contacto original
+        const resolvedContact = updatedContact ?? contact;
+        const nextContacts = this._contacts$.value.map((existing) =>
+          existing.id === resolvedContact.id ? { ...resolvedContact } : existing,
+        );
+        this._contacts$.next(nextContacts);
+        return resolvedContact;
+      }),
       catchError(this._handleError<Contact>('updateContact', undefined, true)),
     );
   }
@@ -54,7 +64,10 @@ export class ContactService {
   deleteContact(id: number): Observable<void> {
     const url = `${this._contactsUrl}/${id}`;
     return this._http.delete<void>(url, this._httpOptions).pipe(
-      this._refreshContacts<void>(),
+      map(() => {
+        const nextContacts = this._contacts$.value.filter((contact) => contact.id !== id);
+        this._contacts$.next(nextContacts);
+      }),
       catchError(this._handleError<void>('deleteContact')),
     );
   }
@@ -67,10 +80,6 @@ export class ContactService {
         // Store an internal copy to avoid external mutations leaking across views.
         this._contacts$.next(contacts.map((contact) => ({ ...contact })));
       });
-  }
-
-  private _refreshContacts<T>(): MonoTypeOperatorFunction<T> {
-    return tap(() => this._loadContacts());
   }
 
   private _handleError<T>(

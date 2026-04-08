@@ -1,0 +1,141 @@
+@use 'assets/styles/variables' as *;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.item {
+  min-width: 0;
+  height: 100%;
+  border-top: 3px solid transparent;
+  border-radius: $radius-lg;
+}
+
+.item p-card {
+  display: block;
+  height: 100%;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 0.8rem 0;
+  border-bottom: 1px solid $border-soft;
+  padding-bottom: 0.7rem;
+}
+
+.nameBlock {
+  min-width: 0;
+  flex: 1;
+
+  .name {
+    margin: 0;
+    color: $text-strong;
+    font-size: 0.98rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.info {
+  display: grid;
+  gap: 0.6rem;
+
+  .line {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: $radius-md;
+    background: $page;
+  }
+
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: $muted;
+    font-size: 0.8rem;
+  }
+
+  .value {
+    color: $text;
+    font-weight: 500;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.valueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.cardFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.cardIconBtn {
+  border-radius: 999px;
+}
+
+:host ::ng-deep .p-card {
+  height: 100%;
+}
+
+:host ::ng-deep .p-card-body {
+  padding: 0.8rem;
+}
+
+:host ::ng-deep .p-avatar {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+@media (max-width: 576px) {
+  .head {
+    gap: 0.55rem;
+    padding: 0.65rem 0.65rem 0;
+    padding-bottom: 0.55rem;
+  }
+
+  .nameBlock {
+    .name {
+      font-size: 0.92rem;
+    }
+  }
+
+  .info {
+    gap: 0.5rem;
+
+    .line {
+      padding: 0.42rem 0.45rem;
+    }
+
+    .label {
+      font-size: 0.76rem;
+    }
+
+    .value {
+      font-size: 0.92rem;
+    }
+  }
+
+  .cardFooterActions {
+    gap: 0.1rem;
+  }
+
+  :host ::ng-deep .p-card-body {
+    padding: 0.6rem;
+  }
+}

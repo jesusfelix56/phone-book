@@ -1,0 +1,104 @@
+<!-- dialogo de perfil de contacto -->
+<p-dialog
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [breakpoints]="{ '768px': '95vw' }"
+  [style]="{ width: '34rem' }"
+  styleClass="contact-profile-dialog"
+  (onHide)="onClose()"
+>
+  <!-- encabezado del dialogo -->
+  <ng-template pTemplate="header">
+    <!-- contenedor del encabezado -->
+    <ng-container *ngIf="contact">
+      <div class="dialogHead">
+        <!-- avatar del contacto -->
+        <p-avatar [image]="displayData.avatar" size="large" shape="circle"></p-avatar>
+        <div class="nameBlock">
+          <h3 class="name" [style.color]="displayData.nameColor">{{ contact.firstName }} {{ contact.lastName }}</h3>
+          <p-tag [value]="contact.jobTitle" [severity]="displayData.tagSeverity"></p-tag>
+        </div>
+      </div>
+    </ng-container>
+  </ng-template>
+
+  <!-- contenedor de informacion del contacto --> 
+  <ng-container *ngIf="contact">
+    <!-- informacion del contacto -->
+    <div class="dialogInfo">
+      <div class="line">
+        <span class="label"><i class="pi pi-phone"></i> Phone</span>
+        <div class="valueRow">
+          <span class="value">{{ contact.phone }}</span>
+          <!-- boton de copia de telefono -->
+          <button
+            pButton
+            type="button"
+            icon="pi pi-copy"
+            severity="secondary"
+            [text]="true"
+            aria-label="Copy phone"
+            pTooltip="Copy phone"
+            tooltipPosition="top"
+            (click)="copyPhone()"
+          ></button>
+        </div>
+      </div>
+      <!-- linea de email -->
+      <div class="line">
+        <span class="label"><i class="pi pi-envelope"></i> Email</span>
+        <div class="valueRow">
+          <span class="value">{{ contact.email }}</span>
+          <!-- boton de copia de email -->
+          <button
+            pButton
+            type="button"
+            icon="pi pi-copy"
+            severity="secondary"
+            [text]="true"
+            aria-label="Copy email"
+            pTooltip="Copy email"
+            tooltipPosition="top"
+            (click)="copyEmail()"
+          ></button>
+        </div>
+      </div>
+
+      <!-- linea de direccion -->
+      <div *ngIf="hasAddress()" class="line">
+        <span class="label"><i class="pi pi-map-marker"></i> Address</span>
+        <div class="valueRow">
+          <span class="value">{{ contact.address }}</span>
+          <button
+            pButton
+            type="button"
+            icon="pi pi-copy"
+            severity="secondary"
+            [text]="true"
+            aria-label="Copy address"
+            pTooltip="Copy address"
+            tooltipPosition="top"
+            (click)="copyAddress()"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- botones de acciones del dialogo -->
+    <div class="dialogActions">
+      <!-- boton de regreso -->
+      <button
+        pButton
+        type="button"
+        label="Back"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        (click)="onClose()"
+      ></button>
+    </div>
+  </ng-container>
+</p-dialog>

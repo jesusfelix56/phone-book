@@ -1,0 +1,68 @@
+@use 'assets/styles/variables' as *;
+
+:host {
+  display: block;
+  position: sticky;
+  top: 5.4rem;
+  z-index: 60;
+}
+
+.filters {
+  display: grid;
+  gap: $space-md;
+  grid-template-columns: 1fr;
+  align-items: center;
+  padding: $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: saturate(130%) blur(8px);
+  -webkit-backdrop-filter: saturate(130%) blur(8px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+
+  .search {
+    width: 100%;
+    position: relative;
+
+    .input {
+      width: 100%;
+      min-width: 0;
+      padding-left: 2.2rem;
+      padding-right: 2.2rem;
+    }
+  }
+
+  .clearSearchBtn {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+@media (min-width: 769px) {
+  :host {
+    top: 4.4rem;
+  }
+
+  .filters {
+    grid-template-columns: 1fr auto;
+
+    .search .input {
+      min-width: 22rem;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+}

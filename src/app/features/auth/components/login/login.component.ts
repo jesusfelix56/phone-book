@@ -28,7 +28,7 @@ export class LoginComponent {
 
       this.errorMessage = '';
       this._toast.success('Welcome', 'You are now logged in as admin.');
-      this._router.navigate(['/admin/contacts']);
+      this._router.navigate(['/contacts']);
     });
   }
 }

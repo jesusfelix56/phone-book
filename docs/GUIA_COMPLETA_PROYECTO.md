@@ -11,11 +11,19 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 - **Rol:** documento host de la SPA.
 - **Clave:** contiene `<app-root>` (ancla donde Angular monta la app), `<base href="/">` (routing) y favicon.
 - **Exporta/metodos:** no aplica (archivo estatico).
+- **Detalle minimo:**
+  - el navegador parsea este archivo antes de cargar Angular,
+  - `<base href="/">` evita rutas rotas al recargar en rutas internas,
+  - si `<app-root>` falta, Angular inicia pero no tiene donde renderizar.
 
 ### `src/main.ts`
 - **Rol:** entry point ejecutable.
 - **Hace:** `platformBrowserDynamic().bootstrapModule(AppModule)` y captura errores con `.catch(...)`.
 - **Conecta con:** `src/app/app.module.ts`.
+- **Detalle minimo:**
+  - crea el contexto inicial de inyeccion de dependencias,
+  - dispara el ciclo de vida Angular completo (`ngOnInit`, render, change detection),
+  - cualquier error de bootstrap queda visible en consola para diagnostico temprano.
 
 ---
 
@@ -54,6 +62,9 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/app.component.spec.ts`
 - **Rol:** test basico del root component (creacion y presencia de `router-outlet`).
+- **Detalle minimo:**
+  - asegura que el cableado del modulo raiz no se rompio,
+  - detecta regresiones de plantilla en el componente host.
 
 ---
 
@@ -65,6 +76,9 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/core/api/mocks/mock-contacts.ts`
 - **Exporta:** `CONTACTS: Contact[]` (dataset semilla).
+- **Detalle minimo:**
+  - define el estado inicial que ve el usuario en listado publico/admin,
+  - sirve como referencia de forma de datos durante desarrollo local.
 
 ### `src/app/services/in-memory-data.service.ts`
 - **Exporta:** `InMemoryDataService`.
@@ -72,6 +86,10 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - `createDb()` -> expone `{ contacts }` desde `CONTACTS`.
   - `genId(contacts)` -> siguiente id incremental.
 - **Conexion:** backend simulado para todas las llamadas `api/contacts`.
+- **Detalle minimo:**
+  - `createDb()` expone colecciones como si fueran recursos REST,
+  - `genId()` evita colisiones simples al crear nuevos registros,
+  - permite probar CRUD completo sin backend real.
 
 ---
 
@@ -84,6 +102,9 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - `interface ContactSortOption`,
   - `interface ContactColumnOption`.
 - **Rol:** contrato tipado comun para servicios y componentes.
+- **Detalle minimo:**
+  - evita inconsistencias de nombres de campos entre capas,
+  - mejora autocompletado y refactor seguro.
 
 ### `src/app/shared/utils/contact-validation.ts`
 - **Exporta constantes:**
@@ -112,6 +133,9 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - `login(username, password): Observable<boolean>` -> valida credenciales y actualiza subject.
   - `logout(): void` -> emite `false`.
   - `isAuthenticated(): boolean` -> lectura sincronica del estado actual.
+- **Detalle minimo:**
+  - combina lectura reactiva (`isAuthenticated$`) para vistas y sincronica para guard,
+  - centraliza la logica de sesion para no duplicarla en componentes.
 
 ### `src/app/services/contact.service.ts`
 - **Exporta:** `ContactService`.
@@ -121,15 +145,19 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - `_httpOptions` (headers JSON).
 - **Constructor:** llama `_loadContacts()`.
 - **Metodos publicos:**
-  - `getContacts()` -> stream de contactos.
+  - `getContacts()` -> stream de contactos (entrega copias por item para evitar mutaciones compartidas entre vistas).
   - `addContact(contact)` -> POST + refresh.
-  - `updateContact(contact)` -> PUT + refresh.
+  - `updateContact(contact)` -> PUT a `api/contacts/:id` + refresh.
   - `deleteContact(id)` -> DELETE + refresh.
 - **Metodos privados:**
-  - `_loadContacts()` -> GET y `next` del subject.
+  - `_loadContacts()` -> GET y `next` del subject con copia de datos.
   - `_refreshContacts<T>()` -> `tap` para recargar tras mutacion.
-  - `_handleError<T>(...)` -> fallback con `of(...)`.
-- **RxJS usado:** `BehaviorSubject`, `tap`, `catchError`, `of`.
+  - `_handleError<T>(...)` -> fallback con `of(...)` o relanza error segun el caso.
+- **RxJS usado:** `BehaviorSubject`, `tap`, `catchError`, `of`, `map`, `throwError`.
+- **Detalle minimo:**
+  - mantiene cache caliente compartida entre vistas,
+  - cada mutacion recarga para mantener consistencia global,
+  - retorna copias para evitar mutaciones accidentales desde UI.
 
 ### `src/app/services/app-toast.service.ts`
 - **Exporta:** `AppToastService`.
@@ -139,6 +167,9 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - `info(summary, detail)`,
   - `_show(severity, summary, detail)` (privado).
 - **Conexion:** centraliza toasts PrimeNG usando `MessageService`.
+- **Detalle minimo:**
+  - estandariza severidades y formato de mensajes,
+  - evita repetir llamadas directas a `MessageService` en cada componente.
 
 ### `src/app/services/clipboard-toast.service.ts`
 - **Exporta:** `ClipboardToastService`.
@@ -147,6 +178,9 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - copia al portapapeles si hay API,
   - muestra toast de feedback.
 - **Consumidores:** tarjetas y modal de perfil publico.
+- **Detalle minimo:**
+  - encapsula casos de API de clipboard no disponible,
+  - deja una API unica para copiar + notificar.
 
 ---
 
@@ -155,10 +189,12 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 ### `src/app/features/auth/auth-routing.module.ts`
 - **Rol:** ruta interna del modulo auth.
 - **Ruta:** `''` -> `LoginComponent`.
+- **Detalle minimo:** al cargar `/login`, el modulo resuelve esta ruta por defecto.
 
 ### `src/app/features/auth/auth.module.ts`
 - **Declara:** `LoginComponent`.
 - **Importa:** `FormsModule`, `AuthRoutingModule` y PrimeNG de formulario/card.
+- **Detalle minimo:** concentra dependencias de autenticacion sin mezclar concernes de otras features.
 
 ### `src/app/features/auth/components/login/login.component.ts`
 - **Variables:** `username`, `password`, `errorMessage`.
@@ -170,9 +206,15 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 ### `src/app/features/auth/components/login/login.component.html`
 - **Bindings:** `[(ngModel)]` en usuario/password, `*ngIf="errorMessage"`.
 - **Evento:** boton `Sign in` -> `login()`.
+- **Detalle minimo:**
+  - la vista solo refleja estado y emite acciones,
+  - la decision de autenticar y navegar vive en el `.ts`.
 
 ### `src/app/features/auth/components/login/login.component.scss`
 - **Rol:** estilos del formulario y del mensaje de error.
+- **Detalle minimo:**
+  - refuerza jerarquia visual del card,
+  - mejora legibilidad de estados de error.
 
 ---
 
@@ -189,6 +231,7 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 ### `src/app/features/public/public.module.ts`
 - **Declara:** `PublicLayoutComponent`, `ContactListComponent`, `ContactListFiltersComponent`, `ContactCardComponent`, `ContactProfileDialogComponent`.
 - **Importa:** `FormsModule` + PrimeNG para lista/filtros/dialog/tarjetas.
+- **Detalle minimo:** separa contenedores con estado de componentes presentacionales.
 
 ### `src/app/features/public/components/public-layout/public-layout.component.ts`
 - **Rol:** shell real de la zona publica (header/nav/logout + contenedor de vistas hijas).
@@ -212,11 +255,17 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 - **Eventos y directivas:**
   - `(click)="logout()"`,
   - `routerLink`, `routerLinkActive`, `*ngIf`, `ng-template`.
+- **Detalle minimo:**
+  - header/nav se mantiene estable mientras cambia la vista hija,
+  - `router-outlet` evita recrear todo el layout en cada navegacion interna.
 
 ### `src/app/features/public/components/public-layout/public-layout.component.scss`
 - **Rol:** estilos del layout publico (header/top nav/content responsive).
 - **Dependencia SCSS:** `@use 'assets/styles/variables' as *`.
 - **Bloques clave:** `.top`, `.topInner`, `.nav`, `.content`, `.contentInner`.
+- **Detalle minimo:**
+  - define layout macro de la pantalla publica,
+  - contempla ajustes responsive para navegacion.
 
 ### `src/app/features/public/components/contact-list/contact-list.component.ts`
 - **Rol:** contenedor de la vista publica.
@@ -240,9 +289,15 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - `p-dataView` paginado con `filteredContacts`,
   - estado vacio con boton `Clear filters`,
   - `app-contact-profile-dialog`.
+- **Detalle minimo:**
+  - expresa estados de render (cargando, con datos, vacio),
+  - concentra eventos de filtros/cards/dialog.
 
 ### `src/app/features/public/components/contact-list/contact-list.component.scss`
 - estilos de layout/grid y estados visuales loading/empty.
+- **Detalle minimo:**
+  - organiza densidad visual de tarjetas,
+  - mantiene lectura clara en distintos anchos.
 
 ### `src/app/features/public/components/contact-list/components/contact-list-filters/contact-list-filters.component.ts`
 - **Inputs:** `searchTerm`, `selectedSort`, `sortOptions`.
@@ -251,9 +306,11 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/features/public/components/contact-list/components/contact-list-filters/contact-list-filters.component.html`
 - input de busqueda y dropdown de orden con `ngModel` y `ngModelChange`.
+- **Detalle minimo:** emite cambios al padre; no aplica logica de filtrado local.
 
 ### `src/app/features/public/components/contact-list/components/contact-list-filters/contact-list-filters.component.scss`
 - estilos responsive del bloque de filtros.
+- **Detalle minimo:** prioriza alineacion y uso rapido de controles.
 
 ### `src/app/features/public/components/contact-list/components/contact-card/contact-card.component.ts`
 - **Input:** `contact`.
@@ -266,9 +323,11 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/features/public/components/contact-list/components/contact-card/contact-card.component.html`
 - tarjeta con avatar, nombre, jobTitle, phone/email y boton `View profile`.
+- **Detalle minimo:** expone acciones atomicas (`copy`, `viewProfile`) sin mezclar reglas de negocio.
 
 ### `src/app/features/public/components/contact-list/components/contact-card/contact-card.component.scss`
 - estilos visuales de card y lineas de informacion.
+- **Detalle minimo:** marca jerarquia visual de nombre, rol y datos de contacto.
 
 ### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.ts`
 - **Inputs:** `visible`, `contact`.
@@ -282,9 +341,11 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.html`
 - modal (`p-dialog`) con datos completos y botones de copiar.
+- **Detalle minimo:** controlado por estado externo (`visible`) para mantener una sola fuente de verdad.
 
 ### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.scss`
 - estilos del modal de perfil.
+- **Detalle minimo:** mejora legibilidad de secciones y acciones del modal.
 
 ---
 
@@ -306,6 +367,7 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - `ContactFormDialogComponent`,
   - `ConfirmDeleteDialogComponent`.
 - **Importa:** `FormsModule` + PrimeNG de tabla/dialog/inputs/multiselect/tooltip.
+- **Detalle minimo:** encapsula todo el stack CRUD admin en un modulo lazy aislado.
 
 ### `src/app/features/admin/components/admin-layout/admin-layout.component.ts`
 - **Rol:** shell privado de admin (header/nav/logout + contenedor de vistas hijas admin).
@@ -318,9 +380,11 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - links `Contacts` y `Admin`,
   - boton `Logout`,
   - `<router-outlet>` hijo para renderizar `AdminContactsComponent`.
+- **Detalle minimo:** implementa shell privado persistente para rutas de administracion.
 
 ### `src/app/features/admin/components/admin-layout/admin-layout.component.scss`
 - **Rol:** estilos del header/nav privado de admin.
+- **Detalle minimo:** mantiene consistencia visual con la zona publica para UX uniforme.
 
 ### `src/app/features/admin/components/admin-contacts/admin-contacts.component.ts`
 - **Rol:** orquestador central del CRUD.
@@ -340,7 +404,7 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
   - `openDeleteSelected()` -> configura borrado bulk.
   - `confirmDeleteDialog()` -> ejecuta single o bulk (`forkJoin`), limpia estado y notifica.
   - `onRowEditInit(contact)` -> clona fila.
-  - `onRowEditSave(contact)` -> valida y persiste; rollback si invalido.
+  - `onRowEditSave(contact)` -> valida y persiste; rollback si invalido o si falla backend, con toast de error.
   - `onRowEditCancel(contact)` -> restaura clon.
   - `updateFormModel(model)` -> sincroniza cambios del hijo.
   - `closeFormDialog()` -> cierra modal y limpia submit.
@@ -351,9 +415,13 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 ### `src/app/features/admin/components/admin-contacts/admin-contacts.component.html`
 - integra toolbar + tabla + dialog formulario + dialog confirmacion.
 - conecta todos los Inputs/Outputs del flujo admin.
+- **Detalle minimo:**
+  - conecta componentes especializados sin duplicar logica,
+  - deja la persistencia y validacion en el contenedor principal.
 
 ### `src/app/features/admin/components/admin-contacts/admin-contacts.component.scss`
 - layout base de la vista admin.
+- **Detalle minimo:** ordena visualmente toolbar, tabla y dialogs en una sola pantalla de gestion.
 
 ### `src/app/features/admin/components/admin-contacts/components/admin-contacts-toolbar/admin-contacts-toolbar.component.ts`
 - **Inputs:** `selectedCount`, `columns`, `selectedColumns`.
@@ -362,9 +430,11 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/features/admin/components/admin-contacts/components/admin-contacts-toolbar/admin-contacts-toolbar.component.html`
 - boton Add, barra bulk condicional, buscador global y selector de columnas.
+- **Detalle minimo:** concentra acciones globales para reducir friccion operativa.
 
 ### `src/app/features/admin/components/admin-contacts/components/admin-contacts-toolbar/admin-contacts-toolbar.component.scss`
 - estilos responsive de toolbar.
+- **Detalle minimo:** asegura que acciones primarias sigan visibles en pantallas pequenas.
 
 ### `src/app/features/admin/components/admin-contacts/components/admin-contacts-table/admin-contacts-table.component.ts`
 - **Inputs:** `contacts`, `selectedColumns`, `selectedContacts`.
@@ -376,9 +446,13 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/features/admin/components/admin-contacts/components/admin-contacts-table/admin-contacts-table.component.html`
 - `p-table` con seleccion multiple, columnas dinamicas, edicion inline y acciones por fila.
+- **Detalle minimo:**
+  - tabla orientada a interaccion rica (seleccion, edicion, acciones),
+  - la decision de guardar/cancelar se delega al padre via eventos.
 
 ### `src/app/features/admin/components/admin-contacts/components/admin-contacts-table/admin-contacts-table.component.scss`
 - estilos de tabla, filas alternas y acciones.
+- **Detalle minimo:** aumenta escaneabilidad y claridad de controles por fila.
 
 ### `src/app/features/admin/components/dialogs/contact-form-dialog/contact-form-dialog.component.ts`
 - **Inputs:** `visible`, `formModel`, `formSubmitted`.
@@ -392,9 +466,11 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/features/admin/components/dialogs/contact-form-dialog/contact-form-dialog.component.html`
 - formulario de contacto con errores por campo y acciones Save/Cancel.
+- **Detalle minimo:** prioriza feedback por campo para reducir errores de captura.
 
 ### `src/app/features/admin/components/dialogs/contact-form-dialog/contact-form-dialog.component.scss`
 - estilos de grilla de formulario y estados de error.
+- **Detalle minimo:** optimiza legibilidad de labels, inputs y mensajes de validacion.
 
 ### `src/app/features/admin/components/dialogs/confirm-delete-dialog/confirm-delete-dialog.component.ts`
 - **Inputs:** `visible`, `title`, `message`, `confirmLabel`.
@@ -403,9 +479,11 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ### `src/app/features/admin/components/dialogs/confirm-delete-dialog/confirm-delete-dialog.component.html`
 - modal de confirmacion con botones Cancel/Confirm.
+- **Detalle minimo:** exige confirmacion explicita antes de acciones destructivas.
 
 ### `src/app/features/admin/components/dialogs/confirm-delete-dialog/confirm-delete-dialog.component.scss`
 - estilos del modal de confirmacion.
+- **Detalle minimo:** refuerza contraste visual entre accion segura y accion destructiva.
 
 ---
 
@@ -414,20 +492,25 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 ### `src/assets/styles/_variables.scss`
 - tokens SCSS de color, espaciado, bordes, radios y sombras.
 - consumido por estilos globales y componentes.
+- **Detalle minimo:** centraliza decisiones de diseno para evitar valores hardcodeados dispersos.
 
 ### `src/styles.scss`
 - hoja de estilo global:
   - base tipografica/layout general,
   - overrides visuales para PrimeNG/dialogs/tablas.
+- **Detalle minimo:** punto unico para reglas transversales que no deben depender de encapsulacion por componente.
 
 ### `src/assets/default-user.svg`
 - avatar fallback para contactos.
+- **Detalle minimo:** evita imagen rota cuando un contacto no tiene foto propia.
 
 ### `src/assets/.gitkeep`
 - mantiene la carpeta `assets` versionada en git.
+- **Detalle minimo:** preserva estructura del proyecto aunque el directorio este temporalmente vacio.
 
 ### `src/favicon.ico`
 - icono de la pestana del navegador.
+- **Detalle minimo:** mejora reconocimiento visual de la app en pestanas e historial.
 
 ---
 
@@ -446,469 +529,26 @@ Regla de lectura: cada archivo aparece una sola vez con su funcion real, lo que 
 
 ---
 
-## 11) Desarrollo detallado (archivo por archivo)
-
-Esta seccion amplía la guia anterior con mas profundidad tecnica.  
-En cada archivo se explica: flujo real, exportaciones, variables, metodos, entradas/salidas y conexiones.
-
-### `src/index.html` (detalle)
-- **Flujo real:** el navegador carga este archivo antes de que exista Angular. Aqui todavia no hay componentes vivos; solo HTML base.
-- **Elementos clave y por que importan:**
-  - `<base href="/">`: permite que Angular Router interprete URLs internas sin recargar servidor en cada ruta.
-  - `<app-root></app-root>`: marcador donde Angular insertara `AppComponent`.
-  - `<link rel="icon" href="favicon.ico">`: conecta el icono de pestana.
-- **Conexiones:**
-  - entrada de todo el frontend,
-  - salida hacia `main.ts` cuando el bundle se ejecuta.
-
-### `src/main.ts` (detalle)
-- **Flujo real:**
-  1. Importa plataforma browser.
-  2. Hace bootstrap de `AppModule`.
-  3. Si algo falla en bootstrap, lo captura y lo imprime en consola.
-- **Llamadas importantes:**
-  - `platformBrowserDynamic().bootstrapModule(AppModule)`:
-    - inicializa inyector raiz,
-    - compila y monta modulo raiz,
-    - arranca ciclo de vida Angular.
-  - `.catch((err) => console.error(err))`:
-    - evita fallos silenciosos en inicio.
-
-### `src/app/app.module.ts` (detalle)
-- **Responsabilidad:** ensamblar el nucleo de la aplicacion.
-- **Imports con efecto funcional:**
-  - `BrowserModule`: base para app web.
-  - `BrowserAnimationsModule`: requerido por varios componentes PrimeNG.
-  - `HttpClientModule`: habilita servicios HTTP.
-  - `HttpClientInMemoryWebApiModule.forRoot(...)`: intercepta llamadas HTTP y responde desde memoria.
-  - `ToastModule`: habilita `<p-toast>`.
-  - `AppRoutingModule`: activa rutas globales.
-- **Providers:**
-  - `MessageService`: motor para emitir notificaciones toast.
-- **Conexiones clave:**
-  - usa `InMemoryDataService` para mock backend,
-  - deja lista la infraestructura que consumirán `ContactService`, `AppToastService`, UI de rutas.
-
-### `src/app/app-routing.module.ts` (detalle)
-- **Rol:** enrutar por contexto funcional (public/auth/admin).
-- **Tabla de decisiones:**
-  - URL `''` -> carga `PublicModule`.
-  - URL `'login'` -> carga `AuthModule`.
-  - URL `'admin'` -> evalua `authGuard`; si pasa, carga `AdminModule`.
-- **Impacto real:**
-  - reduce bundle inicial por lazy loading,
-  - separa responsabilidades por feature,
-  - centraliza seguridad de ruta privada.
-
-### `src/app/app.component.ts` (detalle actual)
-- **Rol actual:** clase minima sin estado.
-- **Que NO hace ya:**
-  - no maneja login/logout,
-  - no dibuja navbar,
-  - no se suscribe a `AuthService`.
-- **Por que es correcto:** esa logica fue movida a `PublicLayoutComponent` para desacoplar shell global de shell publico.
-
-### `src/app/app.component.html` (detalle actual)
-- **Contenido exacto:**
-  - `<p-toast position="top-right"></p-toast>`
-  - `<router-outlet></router-outlet>`
-- **Interpretacion:**
-  - `p-toast` queda siempre disponible para cualquier feature.
-  - `router-outlet` es el punto unico de render de rutas de primer nivel.
-
-### `src/app/app.component.scss` (detalle actual)
-- **Contenido minimo:** `:host { display: block; }`
-- **Efecto:** garantiza que el componente raiz sea elemento bloque y no rompa layout.
-
-### `src/app/app.component.spec.ts` (detalle)
-- **Objetivo del test:** verificar que el root se crea y renderiza.
-- **Valor practico:** detecta regresiones tempranas de wiring basico de app.
-
-### `src/app/core/guards/auth.guard.ts` (detalle)
-- **Funcion exportada:** `authGuard` (`CanActivateFn`).
-- **Flujo exacto:**
-  1. Inyecta `AuthService` y `Router`.
-  2. Consulta `authService.isAuthenticated()`.
-  3. Si `true`: devuelve `true`.
-  4. Si `false`: `router.navigate(['/login'])` y devuelve `false`.
-- **Efectos:**
-  - protege `/admin`,
-  - fuerza paso por login si no hay sesion.
-
-### `src/app/core/api/mocks/mock-contacts.ts` (detalle)
-- **Exporta:** `CONTACTS`.
-- **Rol:** dataset inicial del backend simulado.
-- **Conexiones:**
-  - consumido por `InMemoryDataService.createDb()`,
-  - se transforma en respuestas HTTP de `api/contacts`.
-
-### `src/app/services/in-memory-data.service.ts` (detalle)
-- **Clase exportada:** `InMemoryDataService`.
-- **Metodo `createDb()`:**
-  - devuelve objeto con colecciones mock (`{ contacts }`).
-  - usa copia de `CONTACTS` para no mutar la constante fuente.
-- **Metodo `genId(contacts)`:**
-  - calcula el siguiente id para POST.
-  - si lista vacia, devuelve 1.
-- **Conexiones:**
-  - cableado en `AppModule`,
-  - hace transparente el mock para `HttpClient`.
-
-### `src/app/shared/interfaces/contact.interface.ts` (detalle)
-- **`Contact`:** entidad principal del dominio.
-- **`ContactSortField`:** restringe campos permitidos para ordenar.
-- **`ContactSortOption`:** estructura para dropdown de orden.
-- **`ContactColumnOption`:** estructura para columnas dinamicas en admin.
-- **Valor tecnico:** evita errores de typo y mejora autocompletado/refactor.
-
-### `src/app/shared/utils/contact-validation.ts` (detalle)
-- **Constantes:**
-  - `CONTACT_EMAIL_PATTERN`: valida formato de correo.
-  - `CONTACT_PHONE_PATTERN`: valida formato de telefono.
-- **Funciones y uso real:**
-  - `isContactEmailValid(value)` -> usada para validar campo email.
-  - `isContactPhoneValid(value)` -> usada para validar campo phone.
-  - `isContactBodyValid(contact)` -> valida bloque completo antes de crear/actualizar.
-  - `getContactFormFieldLabel(field)` -> etiqueta legible por campo.
-  - `getContactFormFieldError(...)` -> mensaje de error contextual, dependiente de `formSubmitted`.
-- **Regla importante:** `address` no es obligatoria.
-
-### `src/app/services/auth.service.ts` (detalle)
-- **Estado interno:**
-  - `_isAuthenticated$` (`BehaviorSubject<boolean>`) inicia en `false`.
-  - `_adminUsername`, `_adminPassword` (credenciales demo).
-- **Salida publica:**
-  - `isAuthenticated$` observable de solo lectura.
-- **Metodos:**
-  - `login(username, password)`:
-    - compara credenciales,
-    - hace `next(isValid)`,
-    - retorna `Observable<boolean>`.
-  - `logout()`:
-    - hace `next(false)`.
-  - `isAuthenticated()`:
-    - retorna valor actual sincrono (ideal para guard).
-- **Conexiones:** login component + public layout + guard.
-
-### `src/app/services/contact.service.ts` (detalle)
-- **Estado y constantes:**
-  - `_contactsUrl = 'api/contacts'`
-  - `_contacts$` (cache reactiva)
-  - `_httpOptions` (headers JSON)
-- **Constructor:** llama `_loadContacts()` para tener datos desde inicio.
-- **API publica:**
-  - `getContacts()` -> stream vivo de contactos.
-  - `addContact(contact)` -> POST y recarga lista.
-  - `updateContact(contact)` -> PUT y recarga.
-  - `deleteContact(id)` -> DELETE y recarga.
-- **Infra privada:**
-  - `_loadContacts()` -> GET + `next`.
-  - `_refreshContacts<T>()` -> operador `tap` reutilizable.
-  - `_handleError<T>()` -> fallback `of(...)`.
-- **Comportamiento importante:**
-  - cada mutacion recarga lista completa para mantener consistencia entre vistas public/admin.
-
-### `src/app/services/app-toast.service.ts` (detalle)
-- **Fachada de mensajes:**
-  - `success`, `error`, `info` llaman a `_show`.
-  - `_show` delega en `MessageService.add(...)`.
-- **Objetivo:** unificar la forma de notificar en toda la app.
-
-### `src/app/services/clipboard-toast.service.ts` (detalle)
-- **Metodo central:** `copyWithFeedback(value, label)`.
-- **Flujo:**
-  1. limpia texto con `trim`,
-  2. si vacio, corta,
-  3. intenta copiar con `navigator.clipboard.writeText`,
-  4. muestra toast de exito/fallback.
-- **Conexiones:** `contact-card` y `contact-profile-dialog`.
-
-### `src/app/features/auth/auth-routing.module.ts` (detalle)
-- **Ruta unica interna:** `''` -> `LoginComponent`.
-- **Conexion con raiz:** se activa cuando el root route carga `AuthModule` en `/login`.
-
-### `src/app/features/auth/auth.module.ts` (detalle)
-- **Declara:** `LoginComponent`.
-- **Importa:**
-  - `FormsModule` (ngModel),
-  - modulos PrimeNG de card/input/boton,
-  - `AuthRoutingModule`.
-
-### `src/app/features/auth/components/login/login.component.ts` (detalle)
-- **Variables:**
-  - `username`, `password` (estado form),
-  - `errorMessage` (feedback visual).
-- **Metodo `login()`:**
-  - llama `AuthService.login(...)`,
-  - si falla: mensaje de error,
-  - si ok: limpia error, toast y navega a `/admin/contacts`.
-- **Efecto global:** cambia estado de sesion que consumen guard/layout.
-
-### `src/app/features/auth/components/login/login.component.html` (detalle)
-- **Bindings:**
-  - `[(ngModel)]` en user/password.
-  - `*ngIf="errorMessage"` para error.
-- **Evento:** boton submit ejecuta `login()`.
-
-### `src/app/features/auth/components/login/login.component.scss` (detalle)
-- **Rol:** estilos del card/form, labels e indicador de error.
-
-### `src/app/features/public/public-routing.module.ts` (detalle)
-- **Estructura actual:**
-  - route padre `''` usa `PublicLayoutComponent`.
-  - children:
-    - `''` -> redirect `contacts`,
-    - `'contacts'` -> `ContactListComponent`.
-- **Beneficio:** un shell publico reutilizable para todas las rutas publicas.
-
-### `src/app/features/public/public.module.ts` (detalle)
-- **Declaraciones:**
-  - `PublicLayoutComponent`,
-  - `ContactListComponent`,
-  - `ContactListFiltersComponent`,
-  - `ContactCardComponent`,
-  - `ContactProfileDialogComponent`.
-- **Imports clave:**
-  - `FormsModule` para ngModel,
-  - PrimeNG para listados, filtros, tarjetas, dialogos, tooltips, skeleton.
-
-### `src/app/features/public/components/public-layout/public-layout.component.ts` (detalle)
-- **Estado:**
-  - `isAuthenticated` para render condicional de menu.
-  - `_authSub?` para limpiar suscripcion.
-- **Metodos:**
-  - `ngOnInit()` -> subscribe a `AuthService.isAuthenticated$`.
-  - `logout()` -> cierra sesion y redirige a `/contacts`.
-  - `ngOnDestroy()` -> libera suscripcion.
-- **Rol arquitectonico:** reemplaza el antiguo shell de `AppComponent`.
-
-### `src/app/features/public/components/public-layout/public-layout.component.html` (detalle)
-- **Partes:**
-  - header con marca,
-  - menu con `Contacts`, `Admin`, `Login/Logout`,
-  - `<router-outlet>` interno para vistas hijas publicas.
-- **Directivas/eventos:**
-  - `routerLink`, `routerLinkActive`,
-  - `*ngIf` para auth-aware links,
-  - `(click)="logout()"`.
-
-### `src/app/features/public/components/public-layout/public-layout.component.scss` (detalle)
-- **Define:**
-  - estructura de alto nivel (`.top`, `.content`),
-  - comportamiento responsive,
-  - estilos de links activos y boton logout.
-
-### `src/app/features/public/components/contact-list/contact-list.component.ts` (detalle)
-- **Variables de estado:**
-  - `contacts`: fuente original.
-  - `filteredContacts`: salida filtrada/ordenada.
-  - `selectedContact`: contacto activo del modal.
-  - `profileVisible`: visibilidad modal.
-  - `loading`: skeleton vs data.
-  - `searchTerm`: texto de busqueda.
-  - `selectedSort`: criterio activo.
-  - `sortOptions`: opciones del selector.
-  - `_contactsSub?`: suscripcion de datos.
-- **Metodos y efectos:**
-  - `ngOnInit()` -> subscribe a stream de contactos, aplica filtros iniciales.
-  - `onSearchChange(value)` -> actualiza texto y recomputa listado.
-  - `onSortChange(value)` -> cambia orden y recomputa.
-  - `clearFilters()` -> reset de busqueda y orden por defecto.
-  - `openProfile(contact)` -> abre dialogo.
-  - `closeProfile()` -> cierra dialogo y limpia seleccion.
-  - `ngOnDestroy()` -> cleanup.
-  - `_applyFilters()`:
-    - filtra por nombre/apellido/nombre completo/telefono,
-    - ordena por campo seleccionado.
-
-### `src/app/features/public/components/contact-list/contact-list.component.html` (detalle)
-- **Flujo visual:**
-  1. muestra filtros,
-  2. si `loading`, renderiza skeletons,
-  3. si no, muestra `p-dataView` paginado,
-  4. si no hay resultados, muestra estado vacio,
-  5. maneja modal de perfil.
-- **Eventos clave:** filtros, `viewProfile`, `close`, limpiar filtros.
-
-### `src/app/features/public/components/contact-list/contact-list.component.scss` (detalle)
-- **Rol:** grilla responsive, estilos de skeleton y empty state.
-
-### `src/app/features/public/components/contact-list/components/contact-list-filters/contact-list-filters.component.ts` (detalle)
-- **Inputs:** `searchTerm`, `selectedSort`, `sortOptions`.
-- **Outputs:** `searchTermChange`, `selectedSortChange`.
-- **Rol:** componente tonto (presentacional), sin logica de negocio.
-
-### `src/app/features/public/components/contact-list/components/contact-list-filters/contact-list-filters.component.html` (detalle)
-- input de busqueda y dropdown de orden con enlace bidireccional via emisiones.
-
-### `src/app/features/public/components/contact-list/components/contact-list-filters/contact-list-filters.component.scss` (detalle)
-- panel responsive de filtros y espaciado.
-
-### `src/app/features/public/components/contact-list/components/contact-card/contact-card.component.ts` (detalle)
-- **Input:** `contact`.
-- **Output:** `viewProfile`.
-- **Variables:**
-  - `defaultAvatar`,
-  - `_namePalette`,
-  - `_tagSeverities`.
-- **Metodos:**
-  - `openProfile()` -> avisa al padre que abra dialogo.
-  - `getNameColor()` -> color dinamico por id.
-  - `getTagSeverity()` -> estilo dinamico de tag.
-  - `copyValue(...)` -> copy + toast.
-
-### `src/app/features/public/components/contact-list/components/contact-card/contact-card.component.html` (detalle)
-- card de contacto con:
-  - nombre + job title,
-  - phone/email con botones copy,
-  - boton `View profile`.
-
-### `src/app/features/public/components/contact-list/components/contact-card/contact-card.component.scss` (detalle)
-- estilo de tarjeta, cabecera, lineas de info y boton final.
-
-### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.ts` (detalle)
-- **Inputs:** `visible`, `contact`.
-- **Outputs:** `visibleChange`, `close`.
-- **Variables internas:**
-  - `defaultAvatar`,
-  - `_namePalette`,
-  - `_tagSeverities`.
-- **Metodo `onClose()`:** sincroniza cierre y notifica al padre.
-- **Metodo `copyValue(...)`:** delega copia y feedback.
-- **Metodo `getNameColor()`:** devuelve color consistente por contacto.
-- **Metodo `getTagSeverity()`:** devuelve severidad consistente para el `jobTitle`.
-
-### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.html` (detalle)
-- dialogo modal con datos extendidos (phone/email/address) y acciones copy/back.
-
-### `src/app/features/public/components/contact-list/components/contact-profile-dialog/contact-profile-dialog.component.scss` (detalle)
-- estilos de cabecera, lineas de dato y pie de acciones.
-
-### `src/app/features/admin/admin-routing.module.ts` (detalle)
-- rutas internas con shell privado:
-  - route padre `''` usa `AdminLayoutComponent`,
-  - children:
-    - `'contacts'` -> `AdminContactsComponent`,
-    - `''` -> redirect a `contacts`.
-
-### `src/app/features/admin/admin.module.ts` (detalle)
-- declara `AdminLayoutComponent`, los componentes admin y dialogos.
-- importa formularios + modulos PrimeNG de tabla/dialog/control.
-
-### `src/app/features/admin/components/admin-layout/admin-layout.component.ts` (detalle)
-- **Metodo `logout()`:**
-  - llama `AuthService.logout()`,
-  - redirige a `/contacts`.
-- **Rol arquitectonico:** shell privado del modulo admin (equivalente al shell publico, pero para rutas protegidas).
-
-### `src/app/features/admin/components/admin-layout/admin-layout.component.html` (detalle)
-- **Partes:**
-  - header con marca,
-  - menu con `Contacts`, `Admin` y boton `Logout`,
-  - `<router-outlet>` interno para vistas hijas admin.
-
-### `src/app/features/admin/components/admin-layout/admin-layout.component.scss` (detalle)
-- **Define:**
-  - estilos de `.top`, `.topInner`, `.nav`,
-  - comportamiento responsive del header de admin.
-
-### `src/app/features/admin/components/admin-contacts/admin-contacts.component.ts` (detalle)
-- **Estado de pagina:**
-  - dataset: `contacts`,
-  - seleccion: `selectedContact`, `selectedContacts`,
-  - visibilidad dialogs: `contactDialogVisible`, `deleteDialogVisible`,
-  - modo borrado: `deleteDialogMode`,
-  - columnas: `columns`, `selectedColumns`,
-  - formulario: `formModel`, `formSubmitted`,
-  - textos dinamicos de confirmacion,
-  - snapshots de edicion: `_clonedContacts`,
-  - acceso a tabla hija: `_contactsTableComponent`.
-- **Metodos clave:**
-  - `openCreate()` + `save()` (alta),
-  - `openDelete()`, `openDeleteSelected()`, `confirmDeleteDialog()` (borrado single/bulk),
-  - `onRowEditInit/Save/Cancel` (edicion inline con rollback),
-  - `onGlobalFilterChange()` (filtro global delegado por `ViewChild`).
-- **Conexiones:** `ContactService`, `AppToastService`, validadores, toolbar/tabla/dialogos.
-
-### `src/app/features/admin/components/admin-contacts/admin-contacts.component.html` (detalle)
-- compone y conecta todo el flujo admin por Inputs/Outputs:
-  - toolbar emite acciones globales,
-  - tabla emite seleccion/edicion/borrado,
-  - dialogo form emite cambios de modelo y submit,
-  - dialogo confirm emite aceptar/cancelar.
-
-### `src/app/features/admin/components/admin-contacts/admin-contacts.component.scss` (detalle)
-- layout de la vista admin.
-
-### `src/app/features/admin/components/admin-contacts/components/admin-contacts-toolbar/admin-contacts-toolbar.component.ts` (detalle)
-- **Inputs:** contador seleccion, columnas disponibles y activas.
-- **Outputs:** add, delete selected, selectedColumnsChange, globalFilterChange.
-- **Metodos:** parsea input de busqueda y propaga eventos.
-
-### `src/app/features/admin/components/admin-contacts/components/admin-contacts-toolbar/admin-contacts-toolbar.component.html` (detalle)
-- barra superior con acciones de crear, borrar seleccionados, buscar y elegir columnas.
-
-### `src/app/features/admin/components/admin-contacts/components/admin-contacts-toolbar/admin-contacts-toolbar.component.scss` (detalle)
-- estilos responsive de toolbar y barra bulk.
-
-### `src/app/features/admin/components/admin-contacts/components/admin-contacts-table/admin-contacts-table.component.ts` (detalle)
-- **Inputs:** datos, columnas visibles, seleccion actual.
-- **Outputs:** cambios de seleccion y ciclo de edicion por fila.
-- **Interno:** `_dataTable` para filtro global PrimeNG.
-- **Metodos:**
-  - `applyGlobalFilter(value)`,
-  - `clearSelectionOnFilter()`.
-
-### `src/app/features/admin/components/admin-contacts/components/admin-contacts-table/admin-contacts-table.component.html` (detalle)
-- `p-table` editable por filas con:
-  - seleccion multiple,
-  - columnas dinamicas,
-  - acciones editar/guardar/cancelar/eliminar.
-
-### `src/app/features/admin/components/admin-contacts/components/admin-contacts-table/admin-contacts-table.component.scss` (detalle)
-- estilos de wrapper, zebra rows y celdas de acciones.
-
-### `src/app/features/admin/components/dialogs/contact-form-dialog/contact-form-dialog.component.ts` (detalle)
-- **Inputs:** `visible`, `formModel`, `formSubmitted`.
-- **Outputs:** `visibleChange`, `save`, `cancel`, `formModelChange`.
-- **Metodos:**
-  - `close()`,
-  - `updateField(...)`,
-  - `isFieldInvalid(...)`,
-  - `getFieldError(...)`,
-  - `getFieldLabel(...)`.
-- **Comportamiento:** validacion visual controlada por `formSubmitted`.
-
-### `src/app/features/admin/components/dialogs/contact-form-dialog/contact-form-dialog.component.html` (detalle)
-- formulario de contacto con mensajes por campo y acciones Save/Cancel.
-
-### `src/app/features/admin/components/dialogs/contact-form-dialog/contact-form-dialog.component.scss` (detalle)
-- grilla, estilos de error e interacciones del modal.
-
-### `src/app/features/admin/components/dialogs/confirm-delete-dialog/confirm-delete-dialog.component.ts` (detalle)
-- **Inputs:** visibilidad, titulo, mensaje, texto boton confirmar.
-- **Outputs:** cerrar (`visibleChange`) y confirmar (`confirm`).
-- **Nota:** componente presentacional; la ejecucion de borrado vive en el padre.
-
-### `src/app/features/admin/components/dialogs/confirm-delete-dialog/confirm-delete-dialog.component.html` (detalle)
-- modal simple de confirmacion con botones cancelar/confirmar.
-
-### `src/app/features/admin/components/dialogs/confirm-delete-dialog/confirm-delete-dialog.component.scss` (detalle)
-- estilos de mensaje y acciones.
-
-### `src/assets/styles/_variables.scss` (detalle)
-- **Rol:** fuente unica de tokens de diseño (colores, spacing, radios, etc.).
-- **Impacto:** uniformidad visual entre componentes.
-
-### `src/styles.scss` (detalle)
-- **Rol:** estilos globales y overrides de PrimeNG.
-- **Impacto:** reglas transversales no encapsuladas.
-
-### `src/assets/default-user.svg` (detalle)
-- avatar fallback visual para contactos.
-
-### `src/assets/.gitkeep` (detalle)
-- mantiene versionada la carpeta de assets aunque quede vacia.
-
-### `src/favicon.ico` (detalle)
-- icono mostrado por el navegador en la pestana.
+## 11) Criterio de cobertura (completo y sin duplicados)
+
+Cada archivo se explica una sola vez en las secciones **1 a 9** con este criterio:
+
+- **Para `.ts`:**
+  - rol real en ejecucion,
+  - exportaciones,
+  - variables/estado relevante,
+  - funciones/metodos (publicos y privados si afectan flujo),
+  - entradas/salidas (`@Input`, `@Output`, retornos),
+  - dependencias y conexiones con otros archivos.
+- **Para `.html`:**
+  - estructura visual,
+  - bindings/directivas/eventos,
+  - comunicacion con su `.ts` y con componentes hijos/padre.
+- **Para `.scss`:**
+  - bloques principales que estiliza,
+  - impacto visual/responsive y dependencias de variables.
+- **Para assets/config estaticos (`.svg`, `.ico`, `.gitkeep`, `index.html`):**
+  - funcion concreta en runtime o versionado,
+  - razon de existencia en el proyecto.
+
+`10) Resumen de flujo` es solo un mapa global para orientarse rapido; el detalle canonico sigue estando en `1-9`.

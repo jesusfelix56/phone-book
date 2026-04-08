@@ -1,0 +1,135 @@
+<!-- dialogo de formulario de contacto -->
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [style]="{ width: 'min(95vw, 40rem)' }"
+  [header]="editingContactId === null ? 'Create contact' : 'Edit contact'"
+>
+  <!-- formulario de contacto -->
+  <div class="contactForm">
+    <!-- grid de campos del formulario -->
+    <div class="formGrid">
+      <!-- campo de nombre -->
+      <label>
+        <span>
+          First name
+          <span *ngIf="isRequiredField('firstName')" class="requiredAsterisk">*</span>
+        </span>
+        <input
+          pInputText
+          #firstNameInput
+          [(ngModel)]="formModel.firstName"
+          (ngModelChange)="onFormFieldChange()"
+          [class.p-invalid]="isFieldInvalid('firstName')"
+        />
+        <small class="fieldError" [class.hiddenError]="!getFieldError('firstName')">
+          {{ getFieldError('firstName') || ' ' }}
+        </small>
+      </label>
+      <!-- campo de apellido -->
+      <label>
+        <span>
+          Last name
+          <span *ngIf="isRequiredField('lastName')" class="requiredAsterisk">*</span>
+        </span>
+        <input
+          pInputText
+          [(ngModel)]="formModel.lastName"
+          (ngModelChange)="onFormFieldChange()"
+          [class.p-invalid]="isFieldInvalid('lastName')"
+        />
+        <small class="fieldError" [class.hiddenError]="!getFieldError('lastName')">
+          {{ getFieldError('lastName') || ' ' }}
+        </small>
+      </label>
+      <!-- campo de telefono -->
+      <label>
+        <span>
+          Phone
+          <span *ngIf="isRequiredField('phone')" class="requiredAsterisk">*</span>
+        </span>
+        <input
+          pInputText
+          [(ngModel)]="formModel.phone"
+          (ngModelChange)="onFormFieldChange()"
+          [class.p-invalid]="isFieldInvalid('phone')"
+        />
+        <small class="fieldError" [class.hiddenError]="!getFieldError('phone')">
+          {{ getFieldError('phone') || ' ' }}
+        </small>
+      </label>
+      <!-- campo de email -->
+      <label>
+        <span>
+          Email
+          <span *ngIf="isRequiredField('email')" class="requiredAsterisk">*</span>
+        </span>
+        <input
+          pInputText
+          [(ngModel)]="formModel.email"
+          (ngModelChange)="onFormFieldChange()"
+          [class.p-invalid]="isFieldInvalid('email')"
+        />
+        <small class="fieldError" [class.hiddenError]="!getFieldError('email')">
+          {{ getFieldError('email') || ' ' }}
+        </small>
+      </label>
+      <!-- campo de trabajo -->
+      <label>
+        <span>
+          Job title
+          <span *ngIf="isRequiredField('jobTitle')" class="requiredAsterisk">*</span>
+        </span>
+        <input
+          pInputText
+          [(ngModel)]="formModel.jobTitle"
+          (ngModelChange)="onFormFieldChange()"
+          [class.p-invalid]="isFieldInvalid('jobTitle')"
+        />
+        <small class="fieldError" [class.hiddenError]="!getFieldError('jobTitle')">
+          {{ getFieldError('jobTitle') || ' ' }}
+        </small>
+      </label>
+      <!-- campo de direccion -->
+      <label>
+        <span>Address</span>
+        <input
+          pInputText
+          [(ngModel)]="formModel.address"
+          (ngModelChange)="onFormFieldChange()"
+          [class.p-invalid]="isFieldInvalid('address')"
+        />
+        <small class="fieldError" [class.hiddenError]="!getFieldError('address')">
+          {{ getFieldError('address') || ' ' }}
+        </small>
+      </label>
+    </div>
+    <!-- mensaje de error de validacion -->
+    <small *ngIf="showValidation && !isSaving && !canSaveContact" class="formError">
+      Complete required fields and use valid phone/email format.
+    </small>
+    <!-- botones de acciones del formulario -->
+    <div class="formActions">
+      <!-- boton de cancelacion -->
+      <button
+        pButton
+        type="button"
+        label="Cancel"
+        severity="secondary"
+        [disabled]="isSaving"
+        (click)="close()"
+      ></button>
+      <!-- boton de guardado -->
+      <button
+        pButton
+        type="button"
+        label="Save"
+        [disabled]="!canSaveContact"
+        [loading]="isSaving"
+        (click)="submit()"
+      ></button>
+    </div>
+  </div>
+</p-dialog>

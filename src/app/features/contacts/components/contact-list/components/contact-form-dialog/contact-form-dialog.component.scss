@@ -1,0 +1,57 @@
+@use 'assets/styles/variables' as *;
+
+.contactForm {
+  display: grid;
+  gap: $space-md;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+
+  label {
+    display: grid;
+    gap: 0.35rem;
+    color: $text;
+    font-weight: 500;
+  }
+}
+
+.requiredAsterisk {
+  color: $danger;
+  margin-left: 0.2rem;
+}
+
+.fieldError {
+  color: $danger;
+  font-weight: 400;
+  min-height: 1rem;
+  line-height: 1rem;
+  display: block;
+}
+
+.formGrid input.p-invalid {
+  border-color: $danger;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+}
+
+.hiddenError {
+  visibility: hidden;
+}
+
+.formError {
+  color: $danger;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (min-width: 769px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,0 +1,53 @@
+<div class="filters">
+  <!-- campo de busqueda -->
+  <p-iconField class="search">
+    <!-- icono de busqueda -->
+    <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+    <!-- input de busqueda -->
+    <input
+      pInputText
+      type="text"
+      class="input"
+      placeholder="Search by name, last name or phone"
+      [ngModel]="searchTerm"
+      (ngModelChange)="searchTermChange.emit($event)"
+    />
+    <!-- boton de limpiar busqueda -->
+    <button
+      *ngIf="showClearSearch"
+      pButton
+      type="button"
+      icon="pi pi-times"
+      severity="secondary"
+      [text]="true"
+      class="clearSearchBtn"
+      aria-label="Clear search"
+      pTooltip="Clear search"
+      tooltipPosition="top"
+      (click)="clearSearch.emit()"
+    ></button>
+  </p-iconField>
+
+  <div class="actions">
+    <!-- dropdown de ordenamiento -->
+    <p-dropdown
+      class="sort"
+      [options]="sortOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="selectedSort"
+      (ngModelChange)="selectedSortChange.emit($event)"
+      placeholder="Sort by"
+    ></p-dropdown>
+
+    <!-- boton de creacion de contacto -->
+    <button
+      *ngIf="canCreateContact"
+      pButton
+      type="button"
+      icon="pi pi-plus"
+      label="Create contact"
+      (click)="createContact.emit()"
+    ></button>
+  </div>
+</div>

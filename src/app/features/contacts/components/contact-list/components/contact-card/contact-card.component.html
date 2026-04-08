@@ -1,0 +1,110 @@
+<!-- tarjeta de contacto -->
+<div class="item" [style.border-top-color]="displayData.nameColor">
+  <p-card>
+    <!-- encabezado de la tarjeta -->
+    <ng-template pTemplate="header">
+      <div class="head">
+        <p-avatar [image]="displayData.avatar" size="large" shape="circle"></p-avatar>
+        <!-- bloque de nombre y trabajo -->
+        <div class="nameBlock">
+          <h3 class="name" [style.color]="displayData.nameColor">
+            {{ contact.firstName }} {{ contact.lastName }}
+          </h3>
+          <!-- etiqueta de trabajo -->
+          <p-tag [value]="contact.jobTitle" [severity]="displayData.tagSeverity"></p-tag>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- informacion de la tarjeta -->
+    <div class="info">
+      <!-- linea de telefono -->
+      <div class="line">
+        <span class="label"><i class="pi pi-phone"></i> Phone</span>
+        <div class="valueRow">
+          <!-- valor del telefono -->
+          <span class="value">{{ contact.phone }}</span>
+          <!-- boton de copia de telefono -->
+          <button
+            pButton
+            type="button"
+            icon="pi pi-copy"
+            severity="secondary"
+            [text]="true"
+            aria-label="Copy phone"
+            pTooltip="Copy phone"
+            tooltipPosition="top"
+            (click)="copyPhone()"
+          ></button>
+        </div>
+      </div>
+      <!-- linea de email -->
+      <div class="line">
+        <span class="label"><i class="pi pi-envelope"></i> Email</span>
+        <div class="valueRow">
+          <!-- valor del email -->
+          <span class="value">{{ contact.email }}</span>
+          <!-- boton de copia de email -->
+          <button
+            pButton
+            type="button"
+            icon="pi pi-copy"
+            severity="secondary"
+            [text]="true"
+            aria-label="Copy email"
+            pTooltip="Copy email"
+            tooltipPosition="top"
+            (click)="copyEmail()"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <!-- botones de acciones de la tarjeta -->
+      <div class="cardFooterActions">
+        <!-- boton de vista de perfil -->
+        <button
+          pButton
+          type="button"
+          icon="pi pi-eye"
+          severity="secondary"
+          [text]="true"
+          class="cardIconBtn"
+          aria-label="View profile"
+          pTooltip="Open profile details"
+          tooltipPosition="top"
+          (click)="openProfile()"
+        ></button>
+        <!-- boton de edicion -->
+        <button
+          *ngIf="isAdmin"
+          pButton
+          type="button"
+          icon="pi pi-pencil"
+          severity="secondary"
+          [text]="true"
+          class="cardIconBtn"
+          aria-label="Edit contact"
+          pTooltip="Edit contact"
+          tooltipPosition="top"
+          (click)="openEdit()"
+        ></button>
+        <!-- boton de eliminacion -->
+        <button
+          *ngIf="isAdmin"
+          pButton
+          type="button"
+          icon="pi pi-trash"
+          severity="danger"
+          [text]="true"
+          class="cardIconBtn"
+          aria-label="Delete contact"
+          pTooltip="Delete contact"
+          tooltipPosition="top"
+          (click)="openDelete()"
+        ></button>
+      </div>
+    </ng-template>
+  </p-card>
+</div>

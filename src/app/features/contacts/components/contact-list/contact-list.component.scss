@@ -1,0 +1,86 @@
+@use 'assets/styles/variables' as *;
+
+.view {
+  display: grid;
+  gap: $space-lg;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-md;
+}
+
+.titleBlock {
+  .title {
+    margin: 0;
+    color: $text;
+  }
+
+  .subtitle {
+    margin: 0.3rem 0 0;
+    color: $muted;
+  }
+}
+
+.resultCount {
+  margin: -0.65rem 0 -0.2rem;
+  color: $muted-strong;
+  font-size: 0.88rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-md;
+}
+
+.skeletonCard {
+  padding: $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  background: $surface;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  padding: $space-lg;
+  border: 1px dashed $border;
+  border-radius: $radius-lg;
+  background: $page;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 1.4rem;
+  color: $muted;
+}
+
+.emptyTitle {
+  margin: 0;
+  color: $text;
+}
+
+.emptyText {
+  margin: 0;
+  color: $muted;
+}
+
+@media (min-width: 769px) {
+  .top {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+} 
+

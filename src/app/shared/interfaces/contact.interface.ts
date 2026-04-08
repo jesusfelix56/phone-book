@@ -20,3 +20,5 @@ export interface ContactColumnOption {
   header: string;
 }
 
+export type ContactFormModel = Omit<Contact, 'id'>;
+

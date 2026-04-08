@@ -1,0 +1,36 @@
+<!-- dialogo de confirmacion de eliminacion de contacto -->
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [style]="{ width: 'min(95vw, 28rem)' }"
+  header="Delete contact"
+>
+  <!-- texto de confirmacion -->
+  <p class="deleteText">
+    Are you sure you want to delete {{ contact?.firstName }} {{ contact?.lastName }}?
+  </p>
+  <!-- botones de confirmacion y cancelacion -->
+  <div class="formActions">
+    <!-- boton de cancelacion -->
+    <button
+      pButton
+      type="button"
+      label="Cancel"
+      severity="secondary"
+      [disabled]="isDeleting"
+      (click)="close()"
+    ></button>
+    <!-- boton de eliminacion -->
+    <button
+      pButton
+      type="button"
+      label="Delete"
+      severity="danger"
+      [disabled]="isDeleting"
+      [loading]="isDeleting"
+      (click)="submitDelete()"
+    ></button>
+  </div>
+</p-dialog>
