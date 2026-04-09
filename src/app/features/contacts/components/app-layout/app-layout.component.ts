@@ -10,7 +10,9 @@ import { AuthService } from '../../../../services/auth.service';
 })
 export class AppLayoutComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
+  isAdmin = false;
   private _authSub?: Subscription;
+  private _adminSub?: Subscription;
 
   constructor(
     private _authService: AuthService,
@@ -21,6 +23,9 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     this._authSub = this._authService.isAuthenticated$.subscribe((isAuthenticated) => {
       this.isAuthenticated = isAuthenticated;
     });
+    this._adminSub = this._authService.isAdmin$.subscribe((isAdmin) => {
+      this.isAdmin = isAdmin;
+    });
   }
 
   logout(): void {
@@ -30,5 +35,6 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this._authSub?.unsubscribe();
+    this._adminSub?.unsubscribe();
   }
 }

@@ -51,6 +51,6 @@ describe('LoginComponent', () => {
       'Welcome',
       'You are now logged in as admin.',
     );
-    expect(router.navigate).toHaveBeenCalledWith(['/contacts']);
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/contacts']);
   });
 });

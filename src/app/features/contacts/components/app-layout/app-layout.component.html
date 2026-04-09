@@ -2,8 +2,8 @@
   <div class="topInner">
     <div class="brand">Phone Book</div>
     <nav class="nav">
-      <a class="link" routerLink="/contacts" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <i class="pi pi-users"></i> Contacts
+      <a *ngIf="isAdmin" class="link" routerLink="/admin/contacts" routerLinkActive="active">
+        <i class="pi pi-shield"></i> Admin
       </a>
       <ng-container *ngIf="!isAuthenticated; else logoutButton">
         <a class="link" routerLink="/login" routerLinkActive="active">
