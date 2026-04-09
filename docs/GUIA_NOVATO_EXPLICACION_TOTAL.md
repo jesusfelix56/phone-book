@@ -47,9 +47,9 @@ Es una app Angular para gestionar contactos:
 5. Router principal:
    - `''` carga `ContactsModule`,
    - `'login'` carga `AuthModule`.
-6. En contactos, la ruta base renderiza `AppLayoutComponent` y dentro de su `router-outlet` carga `ContactListComponent`.
+6. En contactos, la ruta base renderiza `AppLayoutComponent`; desde ahi existe vista general y vista admin protegida.
 7. `ContactListComponent`:
-   - se suscribe al estado de auth,
+   - se suscribe al estado de admin,
    - se suscribe a contactos desde `ContactService`,
    - filtra/ordena con `ContactsViewModelService`,
    - controla dialogos (perfil, formulario, confirmacion de borrado).
@@ -166,15 +166,16 @@ Es una app Angular para gestionar contactos:
 ## 4.5 Servicios de aplicacion
 
 ### `src/app/services/auth.service.ts`
-- Usa `BehaviorSubject<boolean>` privado para estado auth.
-- `isAuthenticated$`: observable publico para la UI reactiva.
+- Usa `BehaviorSubject<boolean>` para estado auth y `BehaviorSubject<UserRole | null>` para rol.
+- `UserRole` actual: solo `'admin'`.
+- Expone `isAuthenticated$`, `role$`, `isAdmin$`, `isAuthenticated()`, `isAdmin()`, `getRole()`.
 - `login(username, password)`:
-  - valida `admin / 123`,
-  - emite estado,
+  - resuelve rol con `_resolveRole(...)`,
+  - hoy solo acepta `admin / 123`,
+  - emite estado y rol,
   - retorna `Observable<boolean>` (`of(isValid)`).
-- `logout()`: emite `false`.
-- `isAuthenticated()`: acceso sincrono al valor actual.
-- Decision: simular auth simple sin JWT/backend para foco en flujo UI.
+- `logout()` limpia auth y rol.
+- Decision: separar autenticacion de rol para permitir proteccion por guard.
 
 ### `src/app/services/app-toast.service.ts`
 - Encapsula `MessageService` de PrimeNG.
@@ -210,6 +211,7 @@ Es una app Angular para gestionar contactos:
   - clona resultado antes de guardar.
 - `_handleError(...)`:
   - helper comun para log y fallback/rethrow.
+- Nota: las operaciones CRUD no validan rol dentro del servicio; la proteccion queda en routing/auth (segun decision del proyecto).
 - Decision clave: mantener cache reactiva local para refrescar UI al instante tras CRUD.
 
 ### `src/app/services/contact-ui.service.ts`
@@ -256,11 +258,12 @@ Es una app Angular para gestionar contactos:
 - `login()`:
   - llama `authService.login(...)`,
   - si invalido: setea `errorMessage`,
-  - si valido: limpia error, muestra toast, navega a `/contacts`.
+  - si valido: limpia error, muestra toast admin, navega a `/admin/contacts`.
 - Decision: login simple y claro para demo.
 
 ### `src/app/features/auth/components/login/login.component.html`
 - Card con header y texto de ayuda de credenciales.
+- Hint actualizado: `usuario admin, contrasena 123`.
 - Dos inputs con `[(ngModel)]`.
 - Error condicional `*ngIf`.
 - Boton Sign in con `(click)="login()"`.
@@ -296,11 +299,14 @@ Es una app Angular para gestionar contactos:
 - Ruta base `''` usa `AppLayoutComponent`.
 - Redirecciona `''` a `'contacts'`.
 - Ruta `'contacts'` renderiza `ContactListComponent`.
-- Decision: layout compartido con children.
+- Ruta `'admin/contacts'` renderiza `ContactListComponent` con `canActivate: [adminGuard]`.
+- `adminGuard` es guard funcional (`CanActivateFn`) para evitar API en desuso.
+- Decision: layout compartido + capa de proteccion por rol en routing.
 
 ### `src/app/features/contacts/components/app-layout/app-layout.component.ts`
-- Mantiene `isAuthenticated` para mostrar Login/Logout.
+- Mantiene `isAuthenticated` y `isAdmin` para mostrar Login/Admin/Logout segun estado.
 - `ngOnInit`: se suscribe a `authService.isAuthenticated$`.
+- `ngOnInit`: tambien se suscribe a `authService.isAdmin$`.
 - `logout()`:
   - llama `authService.logout()`,
   - navega a `/contacts`.
@@ -308,7 +314,8 @@ Es una app Angular para gestionar contactos:
 
 ### `src/app/features/contacts/components/app-layout/app-layout.component.html`
 - Header sticky con branding y nav.
-- Muestra link Login o boton Logout segun `*ngIf="!isAuthenticated"`.
+- Muestra link `Admin` solo cuando `isAdmin === true`.
+- Muestra `Login` si no autenticado y `Logout` si autenticado.
 - Contiene `router-outlet` hijo.
 
 ### `src/app/features/contacts/components/app-layout/app-layout.component.scss`
@@ -560,7 +567,8 @@ Por que asi:
 ## 8) Seguridad y limites actuales (honesto para tu exposicion)
 
 - Login hardcodeado (`admin/123`), no apto para produccion.
-- No hay guard de rutas que bloquee `/contacts` por auth; el rol admin solo habilita/oculta acciones.
+- Hay guard funcional para `'/admin/contacts'` (`adminGuard`), pero sigue siendo una seguridad de frontend.
+- La ruta `'/contacts'` permanece publica por decision funcional; la proteccion fuerte siempre debe hacerse en backend real.
 - API en memoria: datos se reinician al refrescar.
 - Errores HTTP se loguean y se manejan con toasts; no hay tracking externo.
 
@@ -574,7 +582,7 @@ Por que asi:
 4. "El componente `ContactListComponent` orquesta estado, filtros, CRUD y dialogos."
 5. "La validacion esta desacoplada en utilidades compartidas para mantener componentes limpios."
 6. "La UI usa PrimeNG y estilos SCSS con variables globales para consistencia."
-7. "Solo admin puede crear/editar/eliminar; usuario normal puede buscar y ver perfiles."
+7. "El flujo actual es solo admin autenticado para entrar por `'/admin/contacts'`; el menu se adapta mostrando acceso Admin."
 
 ---
 
@@ -810,7 +818,7 @@ No repite literalmente las 500+ lineas, pero te da una explicacion secuencial ex
   - Para produccion, si. Para demo/prototipo, acelera validacion de UX y arquitectura.
 
 - "Por que no hay `Route Guard` si existe auth?"
-  - Es una simplificacion de demo. En produccion se agregaria `canActivate` para proteger rutas.
+  - Ya existe guard funcional (`adminGuard`) en `'/admin/contacts'`; en produccion se complementa con autorizacion real en backend.
 
 - "Por que usar PrimeNG en vez de CSS puro para todo?"
   - Acelera desarrollo con componentes robustos (dialog, dropdown, toast), manteniendo consistencia visual.
