@@ -44,7 +44,7 @@
             aria-label="Copy phone"
             pTooltip="Copy phone"
             tooltipPosition="top"
-            (click)="copyPhone()"
+            (click)="contactClipboard.phone(contact)"
           ></button>
         </div>
       </div>
@@ -63,7 +63,7 @@
             aria-label="Copy email"
             pTooltip="Copy email"
             tooltipPosition="top"
-            (click)="copyEmail()"
+            (click)="contactClipboard.email(contact)"
           ></button>
         </div>
       </div>
@@ -82,7 +82,7 @@
             aria-label="Copy address"
             pTooltip="Copy address"
             tooltipPosition="top"
-            (click)="copyAddress()"
+            (click)="contactClipboard.address(contact)"
           ></button>
         </div>
       </div>

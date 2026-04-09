@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { AppToastService } from '../../../../../../services/app-toast.service';
 import { ContactUiService } from '../../../../../../services/contact-ui.service';
+import { ContactClipboardService } from '../../../../../../services/contact-clipboard.service';
 import { ContactCardComponent } from './contact-card.component';
 
 describe('ContactCardComponent', () => {
@@ -15,14 +15,14 @@ describe('ContactCardComponent', () => {
       nameColor: '#2563eb',
       tagSeverity: 'info',
     });
-    const toastSpy = jasmine.createSpyObj<AppToastService>('AppToastService', ['copyWithFeedback']);
+    const contactClipboardSpy = jasmine.createSpyObj<ContactClipboardService>('ContactClipboardService', ['phone', 'email']);
 
     await TestBed.configureTestingModule({
       declarations: [ContactCardComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: ContactUiService, useValue: contactUiServiceSpy },
-        { provide: AppToastService, useValue: toastSpy },
+        { provide: ContactClipboardService, useValue: contactClipboardSpy },
       ],
     }).compileComponents();
 

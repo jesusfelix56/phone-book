@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { AppToastService } from '../../../../../../services/app-toast.service';
 import { Contact } from '../../../../../../shared/interfaces/contact.interface';
 import { ContactUiService } from '../../../../../../services/contact-ui.service';
+import { ContactClipboardService } from '../../../../../../services/contact-clipboard.service';
 
 @Component({
   selector: 'app-contact-profile-dialog',
@@ -21,7 +21,7 @@ export class ContactProfileDialogComponent {
 
   constructor(
     private _contactUi: ContactUiService,
-    private _toast: AppToastService,
+    public contactClipboard: ContactClipboardService,
   ) {}
 
   get displayData() {
@@ -32,21 +32,6 @@ export class ContactProfileDialogComponent {
   onClose(): void {
     this.visibleChange.emit(false);
     this.close.emit();
-  }
-
-  //copiar el telefono del contacto
-  copyPhone(): void {
-    this._toast.copyWithFeedback(this.contact?.phone ?? '', 'Phone');
-  }
-
-  //copiar el email del contacto
-  copyEmail(): void {
-    this._toast.copyWithFeedback(this.contact?.email ?? '', 'Email');
-  }
-
-  //copiar la direccion del contacto
-  copyAddress(): void {
-    this._toast.copyWithFeedback(this.contact?.address ?? '', 'Address');
   }
 
   //verificar si el contacto tiene direccion

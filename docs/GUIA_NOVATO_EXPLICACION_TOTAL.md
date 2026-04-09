@@ -222,6 +222,15 @@ Es una app Angular para gestionar contactos:
 - `getDisplayData(contact)` retorna todo listo para pintar en UI.
 - Decision: separar logica visual calculada del template.
 
+### `src/app/services/contact-clipboard.service.ts`
+- Servicio nuevo para eliminar codigo repetido de copiado entre componentes.
+- Encapsula 3 metodos:
+  - `phone(contact)`,
+  - `email(contact)`,
+  - `address(contact)`.
+- Internamente delega a `AppToastService.copyWithFeedback(...)`.
+- Decision: centralizar comportamiento comun (DRY), mejorar mantenimiento y facilitar pruebas.
+
 ### `src/app/services/contacts-view-model.service.ts`
 - `filterAndSortContacts(contacts, searchTerm, selectedSort)`:
   - normaliza `searchTerm`,
@@ -424,7 +433,7 @@ Eventos clave:
   - `onEdit`,
   - `delete`.
 - Usa `ContactUiService` para `displayData` (avatar, color, tag).
-- `copyPhone` y `copyEmail` delegan en `AppToastService`.
+- Ya no contiene metodos `copyPhone/copyEmail`; ahora expone `contactClipboard` y usa servicio compartido.
 
 ### `.../contact-card.component.html`
 - Card PrimeNG con:
@@ -432,6 +441,9 @@ Eventos clave:
   - cuerpo (phone/email con botones copy),
   - footer (ver/editar/eliminar).
 - Edit/Delete solo con `*ngIf="isAdmin"`.
+- Los botones copy llaman directo:
+  - `(click)="contactClipboard.phone(contact)"`
+  - `(click)="contactClipboard.email(contact)"`
 
 ### `.../contact-card.component.scss`
 - Apariencia de card, tipografia, truncado de texto.
@@ -445,7 +457,7 @@ Eventos clave:
 - Inputs: `visible`, `contact`.
 - Outputs: `visibleChange`, `close`.
 - `onClose()` sincroniza cierre con padre.
-- `copyPhone`, `copyEmail`, `copyAddress`.
+- Ya no contiene `copyPhone/copyEmail/copyAddress`; usa `contactClipboard` compartido.
 - `hasAddress()` evita mostrar bloque vacio.
 
 ### `.../contact-profile-dialog.component.html`
@@ -453,6 +465,10 @@ Eventos clave:
 - Header con avatar + nombre + tag.
 - Secciones de phone/email/address (address condicional).
 - Boton Back para cerrar.
+- Los botones copy llaman al servicio comun:
+  - `(click)="contactClipboard.phone(contact)"`
+  - `(click)="contactClipboard.email(contact)"`
+  - `(click)="contactClipboard.address(contact)"`
 
 ### `.../contact-profile-dialog.component.scss`
 - Estilos de header y bloques de informacion.
@@ -561,6 +577,7 @@ Por que asi:
 - Dialogos para CRUD: evita navegar entre pantallas y simplifica flujo.
 - Toasts globales: feedback inmediato de acciones (copiar, guardar, eliminar).
 - `::ng-deep` solo donde PrimeNG no ofrece API de estilo suficiente.
+- Refactor DRY: logica de copiado centralizada en `ContactClipboardService` para evitar duplicidad entre card y profile dialog.
 
 ---
 

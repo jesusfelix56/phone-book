@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { AppToastService } from '../../../../../../services/app-toast.service';
 import { Contact } from '../../../../../../shared/interfaces/contact.interface';
 import { ContactUiService } from '../../../../../../services/contact-ui.service';
+import { ContactClipboardService } from '../../../../../../services/contact-clipboard.service';
 
 @Component({
   selector: 'app-contact-card',
@@ -22,7 +22,7 @@ export class ContactCardComponent {
   //servicio de ui de contacto
   constructor(
     private _contactUi: ContactUiService,
-    private _toast: AppToastService,
+    public contactClipboard: ContactClipboardService,
   ) {}
 
   //obtener el meta de visualizacion del contacto
@@ -45,13 +45,4 @@ export class ContactCardComponent {
     this.delete.emit(this.contact);
   }
 
-  //copiar el telefono del contacto
-  copyPhone(): void {
-    this._toast.copyWithFeedback(this.contact.phone, 'Phone');
-  }
-
-  //copiar el email del contacto
-  copyEmail(): void {
-    this._toast.copyWithFeedback(this.contact.email, 'Email');
-  }
 }

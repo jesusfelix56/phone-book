@@ -179,12 +179,13 @@ Que demuestra este spec:
 Que hace hoy:
 - Crea componente con dependencias mockeadas:
   - `ContactUiService.getDisplayData`,
-  - `AppToastService.copyWithFeedback`.
+  - `ContactClipboardService.phone/email`.
 - Inyecta un `contact` mock valido.
 - Verifica `should create`.
 
 Valor actual:
 - Garantiza que el componente instancia correctamente con sus providers.
+- Refleja el refactor DRY: el componente ya no copia directamente, delega en servicio compartido.
 
 ---
 
@@ -212,11 +213,12 @@ Valor:
 
 Que hace hoy:
 - Mock de `ContactUiService`.
-- Mock de `AppToastService`.
+- Mock de `ContactClipboardService` (`phone`, `email`, `address`).
 - Smoke test (`should create`).
 
 Valor:
 - Verifica integracion minima de providers requeridos.
+- Tambien confirma que el componente esta preparado para la nueva dependencia de copiado centralizado.
 
 ---
 
@@ -246,12 +248,25 @@ Para una defensa tecnica, reconoce esto y propone mejora incremental.
 
 Faltantes importantes:
 - `AppLayoutComponent`: probar reaccion a `isAuthenticated$`/`isAdmin$` y `logout()`.
-- `ContactCardComponent`: probar `profileClick`, `onEdit`, `delete`, `copyPhone`, `copyEmail`.
+- `ContactCardComponent`: probar `profileClick`, `onEdit`, `delete`, y que template invoque `contactClipboard.phone/email`.
 - `ContactListFiltersComponent`: probar emisiones `searchTermChange`, `selectedSortChange`, `clearSearch`, `createContact`.
 - `ConfirmDeleteDialogComponent`: probar bloqueo cuando `deleting=true` y emisiones correctas.
-- `ContactProfileDialogComponent`: probar `onClose`, `hasAddress`, `copyPhone/copyEmail/copyAddress`.
+- `ContactProfileDialogComponent`: probar `onClose`, `hasAddress`, y llamadas a `contactClipboard.phone/email/address`.
 - `ContactFormDialogComponent`: probar `submit`, validaciones, `canSaveContact`, reset en `ngOnChanges`.
 - `ContactListComponent`: faltan casos de `saveContact`, `confirmDelete`, manejo de error toast, `openEdit`.
+
+---
+
+## 9) Nota de refactor reciente (copiado DRY)
+
+Cambio importante que debes mencionar si te preguntan por mantenimiento:
+
+- Antes: `contact-card` y `contact-profile-dialog` repetian metodos de copiado.
+- Ahora: ambos delegan en `ContactClipboardService`.
+- Impacto en tests:
+  - los specs ya no mockean `AppToastService` en esos componentes,
+  - mockean `ContactClipboardService`,
+  - esto reduce acoplamiento y facilita evolucion del comportamiento de copiado.
 
 ---
 
