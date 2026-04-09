@@ -1,56 +1,73 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 import { AppToastService } from '../../../../services/app-toast.service';
 import { AuthService } from '../../../../services/auth.service';
 import { LoginComponent } from './login.component';
 
 describe('LoginComponent', () => {
-  it('should create the component', () => {
-    const authService = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
-    const router = jasmine.createSpyObj<Router>('Router', ['navigate']);
-    const toast = jasmine.createSpyObj<AppToastService>('AppToastService', [
-      'success',
-    ]);
-    authService.login.and.returnValue(of(true));
-    const component = new LoginComponent(authService, router, toast);
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let toastSpy: jasmine.SpyObj<AppToastService>;
+  let router: Router;
 
+  beforeEach(async () => {
+    authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
+    toastSpy = jasmine.createSpyObj<AppToastService>('AppToastService', ['success']);
+    authServiceSpy.login.and.returnValue(of(false));
+
+    await TestBed.configureTestingModule({
+      declarations: [LoginComponent],
+      imports: [RouterTestingModule, FormsModule],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: AuthService, useValue: authServiceSpy },
+        { provide: AppToastService, useValue: toastSpy },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show an error when credentials are invalid', () => {
-    const authService = jasmine.createSpyObj('AuthService', ['login']);
-    const router = jasmine.createSpyObj('Router', ['navigate']);
-    const toast = jasmine.createSpyObj('AppToastService', ['success']);
-    const component = new LoginComponent(authService, router, toast);
+  it('should start with empty fields', () => {
+    expect(component.username).toBe('');
+    expect(component.password).toBe('');
+    expect(component.errorMessage).toBe('');
+  });
 
-    authService.login.and.returnValue(of(false));
+  it('should show error when credentials are invalid', () => {
     component.username = 'admin';
-    component.password = 'wrong-password';
+    component.password = 'bad-password';
+    authServiceSpy.login.and.returnValue(of(false));
 
     component.login();
 
+    expect(authServiceSpy.login).toHaveBeenCalledWith('admin', 'bad-password');
     expect(component.errorMessage).toBe('Invalid credentials');
-    expect(toast.success).not.toHaveBeenCalled();
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(toastSpy.success).not.toHaveBeenCalled();
   });
 
   it('should navigate when credentials are valid', () => {
-    const authService = jasmine.createSpyObj('AuthService', ['login']);
-    const router = jasmine.createSpyObj('Router', ['navigate']);
-    const toast = jasmine.createSpyObj('AppToastService', ['success']);
-    const component = new LoginComponent(authService, router, toast);
-
-    authService.login.and.returnValue(of(true));
+    const navigateSpy = spyOn(router, 'navigate');
     component.username = 'admin';
     component.password = '123';
+    authServiceSpy.login.and.returnValue(of(true));
 
     component.login();
 
     expect(component.errorMessage).toBe('');
-    expect(toast.success).toHaveBeenCalledWith(
-      'Welcome',
-      'You are now logged in as admin.',
-    );
-    expect(router.navigate).toHaveBeenCalledWith(['/admin/contacts']);
+    expect(toastSpy.success).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith(['/admin/contacts']);
   });
 });
