@@ -1,14 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import {
-  BehaviorSubject,
-  Observable,
-  catchError,
-  filter,
-  map,
-  of,
-  throwError,
-} from 'rxjs';
+import { BehaviorSubject, Observable, catchError, filter, map, of,throwError,} from 'rxjs';
 import { Contact } from '../shared/interfaces/contact.interface';
 
 @Injectable({
@@ -51,7 +43,6 @@ export class ContactService {
     const url = `${this._contactsUrl}/${contact.id}`;
     return this._http.put<Contact | null>(url, contact, this._httpOptions).pipe(
       map((updatedContact) => {
-        //si updatedContact es null, usamos el contacto original
         const resolvedContact = updatedContact ?? contact;
         const nextContacts = (this._contacts$.value ?? []).map((existing) =>
           existing.id === resolvedContact.id ? { ...resolvedContact } : existing,
@@ -79,7 +70,6 @@ export class ContactService {
       .get<Contact[]>(this._contactsUrl)
       .pipe(catchError(this._handleError<Contact[]>('_loadContacts', [])))
       .subscribe((contacts) => {
-        // Store an internal copy to avoid external mutations leaking across views.
         this._contacts$.next(contacts.map((contact) => ({ ...contact })));
       });
   }
